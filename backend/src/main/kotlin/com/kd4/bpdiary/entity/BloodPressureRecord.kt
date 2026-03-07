@@ -42,6 +42,12 @@ class BloodPressureRecord(
 
     val memo: String? = null,
 
+    val weight: Int? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    val measurementPosition: MeasurementPosition? = null,
+
     @Column(nullable = false)
     val measuredAt: LocalDateTime = LocalDateTime.now(),
 

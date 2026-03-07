@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개인정보 제3자 제공 동의 - 혈압 다이어리</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+    :root {
+      --black: #111111;
+      --dark: #333333;
+      --text: #444444;
+      --muted: #888888;
+      --border: #cccccc;
+      --bg-light: #f5f5f5;
+      --bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+      font-size: 15px;
+    }
+
+    header {
+      background: var(--black);
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header .logo {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 18px;
+      color: #fff;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    header .logo span {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      background: #555555;
+      border-radius: 50%;
+      line-height: 28px;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 60px auto;
+      padding: 0 24px 80px;
+    }
+
+    .doc-header {
+      border-bottom: 3px solid var(--black);
+      padding-bottom: 28px;
+      margin-bottom: 48px;
+    }
+
+    .doc-header h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+
+    .doc-header .date {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    .intro {
+      background: var(--bg-light);
+      border-left: 4px solid var(--dark);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 36px;
+      font-size: 14px;
+      color: var(--dark);
+      font-weight: 300;
+    }
+
+    h2 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--black);
+      margin: 44px 0 14px;
+      padding-left: 14px;
+      border-left: 3px solid var(--black);
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: var(--text);
+      font-weight: 300;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--black);
+      color: #fff;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:nth-child(even) {
+      background: var(--bg-light);
+    }
+
+    tbody td {
+      padding: 13px 16px;
+      vertical-align: top;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    .notice-box {
+      margin-top: 16px;
+      padding: 14px 18px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--dark);
+      font-weight: 300;
+    }
+
+    .notice-box strong {
+      font-weight: 500;
+    }
+
+    .warning-box {
+      margin-top: 10px;
+      padding: 14px 18px;
+      background: #eeeeee;
+      border-radius: 8px;
+      border: 1px solid #bbbbbb;
+      font-size: 13px;
+      color: var(--dark);
+      font-weight: 300;
+    }
+
+    .steps-box {
+      margin-top: 12px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--dark);
+      font-weight: 300;
+    }
+
+    .steps-box .step-path {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .steps-box .step {
+      background: var(--dark);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .steps-box .arrow {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .contact-box {
+      margin-top: 52px;
+      background: var(--bg-light);
+      border-radius: 10px;
+      padding: 24px 28px;
+      border: 1px solid var(--border);
+    }
+
+    .contact-box p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .contact-box strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: var(--black);
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: var(--black);
+      color: #999999;
+      font-size: 12px;
+      font-weight: 300;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span>♥</span> 혈압 다이어리
+  </div>
+</header>
+
+<div class="container">
+  <div class="doc-header">
+    <h1>개인정보 제3자 제공 동의</h1>
+    <p class="date">시행일: 2026년 3월 7일</p>
+  </div>
+
+  <div class="intro">
+    혈압 다이어리(이하 "서비스")는 Apple 로그인 연동을 위해 아래와 같이 개인정보를 제3자에게 제공합니다.
+  </div>
+
+  <h2>개인정보 제3자 제공 내역</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>제공받는 자</th>
+        <th>제공 항목</th>
+        <th>제공 목적</th>
+        <th>보유 기간</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Apple Inc.</td>
+        <td>Apple 로그인 식별자<br>(userIdentifier)</td>
+        <td>Apple 로그인 서비스 연동 및 본인 확인</td>
+        <td>Apple 로그인 연결 해제 시 즉시 파기</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="notice-box">
+    <strong>안내:</strong> Apple 로그인 연동 외 다른 목적으로 제3자에게 개인정보를 제공하지 않습니다.
+  </div>
+
+  <h2>동의 거부 시 불이익</h2>
+  <div class="warning-box">
+    위 개인정보 제3자 제공에 동의하지 않을 수 있으나, 동의를 거부할 경우 Apple 로그인을 통한 서비스 이용이 불가합니다.
+  </div>
+
+  <h2>Apple 로그인 연결 해제</h2>
+  <div class="steps-box">
+    <p>아래 경로를 통해 언제든지 Apple 로그인 연결을 해제할 수 있습니다. 연결 해제 시 서비스 로그인이 자동으로 해제됩니다.</p>
+    <div class="step-path">
+      <span class="step">iPhone 설정</span>
+      <span class="arrow">→</span>
+      <span class="step">[내 이름]</span>
+      <span class="arrow">→</span>
+      <span class="step">로그인 및 보안</span>
+      <span class="arrow">→</span>
+      <span class="step">Apple ID로 로그인하는 앱</span>
+      <span class="arrow">→</span>
+      <span class="step">혈압 다이어리</span>
+      <span class="arrow">→</span>
+      <span class="step">Apple ID 사용 중단</span>
+    </div>
+  </div>
+
+  <div class="contact-box">
+    <strong>문의</strong>
+    <p>개인정보 관련 문의: kangddanddan@gmail.com</p>
+  </div>
+
+  <p style="margin-top: 40px; color: var(--muted); font-size: 13px;">본 동의서는 2026년 3월 7일부터 시행됩니다.</p>
+</div>
+
+<footer>
+  © 2026 혈압 다이어리. All rights reserved.
+</footer>
+
+</body>
+</html>

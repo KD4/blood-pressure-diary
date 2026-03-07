@@ -1,71 +1,135 @@
+import { NavLink } from 'react-router-dom';
 import { css } from '@emotion/react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { color, layout, fontSize } from '../styles/tokens';
-
-const navItems = [
-  { path: '/home', label: '홈', icon: '🏠' },
-  { path: '/record', label: '기록', icon: '✏️' },
-  { path: '/statistics', label: '통계', icon: '📊' },
-  { path: '/profile', label: '설정', icon: '⚙️' },
-];
+import { Asset, Text } from '@toss/tds-mobile';
+import { adaptive } from '@toss/tds-colors';
 
 export default function BottomNav() {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-
   return (
-    <nav css={navStyle}>
-      {navItems.map(item => (
-        <button
-          key={item.path}
-          css={[navItemStyle, pathname === item.path && activeStyle]}
-          onClick={() => navigate(item.path)}
-        >
-          <span css={iconStyle}>{item.icon}</span>
-          <span css={labelStyle}>{item.label}</span>
-        </button>
-      ))}
+    <nav css={navWrapperStyle}>
+      <div css={navStyle}>
+        <NavLink to="/record" css={navItemStyle}>
+          {({ isActive }) => (
+            <div css={navItemInnerStyle}>
+              <Asset.Icon
+                frameShape={Asset.frameShape.CleanW24}
+                name="icon-pencil-mono"
+                color={isActive ? adaptive.grey800 : adaptive.grey400}
+                aria-hidden
+              />
+              <Text
+                display="block"
+                color={isActive ? adaptive.grey900 : adaptive.grey600}
+                typography="st13"
+                fontWeight="medium"
+                textAlign="center"
+              >
+                측정
+              </Text>
+            </div>
+          )}
+        </NavLink>
+        <NavLink to="/statistics" css={navItemStyle}>
+          {({ isActive }) => (
+            <div css={navItemInnerStyle}>
+              <Asset.Icon
+                frameShape={Asset.frameShape.CleanW24}
+                name="icon-chart-mono"
+                color={isActive ? adaptive.grey800 : adaptive.grey400}
+                aria-hidden
+              />
+              <Text
+                display="block"
+                color={isActive ? adaptive.grey900 : adaptive.grey600}
+                typography="st13"
+                fontWeight="medium"
+                textAlign="center"
+              >
+                통계
+              </Text>
+            </div>
+          )}
+        </NavLink>
+        <NavLink to="/history" css={navItemStyle}>
+          {({ isActive }) => (
+            <div css={navItemInnerStyle}>
+              <Asset.Icon
+                frameShape={Asset.frameShape.CleanW24}
+                name="icon-book-opened-mono"
+                color={isActive ? adaptive.grey800 : adaptive.grey400}
+                aria-hidden
+              />
+              <Text
+                display="block"
+                color={isActive ? adaptive.grey900 : adaptive.grey600}
+                typography="st13"
+                fontWeight="medium"
+                textAlign="center"
+              >
+                기록
+              </Text>
+            </div>
+          )}
+        </NavLink>
+        <NavLink to="/profile" css={navItemStyle}>
+          {({ isActive }) => (
+            <div css={navItemInnerStyle}>
+              <Asset.Icon
+                frameShape={Asset.frameShape.CleanW24}
+                name="icon-setting-mono"
+                color={isActive ? adaptive.grey800 : adaptive.grey400}
+                aria-hidden
+              />
+              <Text
+                display="block"
+                color={isActive ? adaptive.grey900 : adaptive.grey600}
+                typography="st13"
+                fontWeight="medium"
+                textAlign="center"
+              >
+                설정
+              </Text>
+            </div>
+          )}
+        </NavLink>
+      </div>
     </nav>
   );
 }
 
-const navStyle = css`
+const navWrapperStyle = css`
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: ${layout.navHeight}px;
-  background: ${color.bgCard};
-  border-top: 1px solid ${color.border};
+  padding: 0 16px;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+`;
+
+const navStyle = css`
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
+  background: ${adaptive.background};
+  border-radius: 30px;
+  padding: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0px 20px 20px -16px #191F2911, 0px 40px 200px 0px #191F293f;
 `;
 
 const navItemStyle = css`
+  text-decoration: none;
+  flex: 1;
+  &:active, &:hover, &:focus, &.active {
+    text-decoration: none;
+  }
+`;
+
+const navItemInnerStyle = css`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px 16px;
-  min-width: ${layout.minTouchTarget}px;
-  min-height: ${layout.minTouchTarget}px;
-  color: ${color.textTertiary};
-`;
-
-const activeStyle = css`
-  color: ${color.primary};
-`;
-
-const iconStyle = css`
-  font-size: 20px;
-`;
-
-const labelStyle = css`
-  font-size: ${fontSize.caption}px;
+  justify-content: center;
+  height: 48px;
+  gap: 3px;
 `;

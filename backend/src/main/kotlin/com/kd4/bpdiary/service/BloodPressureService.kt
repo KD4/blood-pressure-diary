@@ -2,6 +2,7 @@ package com.kd4.bpdiary.service
 
 import com.kd4.bpdiary.dto.*
 import com.kd4.bpdiary.entity.BloodPressureRecord
+import com.kd4.bpdiary.entity.MeasurementPosition
 import com.kd4.bpdiary.entity.MeasurementTag
 import com.kd4.bpdiary.repository.BloodPressureRecordRepository
 import org.springframework.stereotype.Service
@@ -23,10 +24,19 @@ class BloodPressureService(
                 pulse = request.pulse,
                 tag = request.tag,
                 memo = request.memo,
+                weight = request.weight,
+                measurementPosition = request.measurementPosition,
                 measuredAt = request.measuredAt ?: LocalDateTime.now(),
             )
         )
         return record.toResponse()
+    }
+
+    fun getRecords(userId: Long, days: Int): List<RecordResponse> {
+        val end = LocalDate.now().atTime(LocalTime.MAX)
+        val start = LocalDate.now().minusDays(days.toLong() - 1).atStartOfDay()
+        return recordRepository.findByUserIdAndMeasuredAtBetweenOrderByMeasuredAtDesc(userId, start, end)
+            .map { it.toResponse() }
     }
 
     fun getTodaySummary(userId: Long): TodaySummaryResponse {
@@ -80,6 +90,8 @@ class BloodPressureService(
                 diastolic = r.diastolic,
                 pulse = r.pulse,
                 tag = r.tag,
+                weight = r.weight,
+                measurementPosition = r.measurementPosition,
                 measuredAt = r.measuredAt ?: LocalDateTime.now(),
             )
         }
@@ -92,6 +104,8 @@ class BloodPressureService(
                 records = emptyList(),
                 avgSystolic = 0.0, avgDiastolic = 0.0, avgPulse = 0.0,
                 maxSystolic = 0, minSystolic = 0, maxDiastolic = 0, minDiastolic = 0,
+                maxPulse = 0, minPulse = 0,
+                avgWeight = null, maxWeight = null, minWeight = null,
                 morningAvgSystolic = null, eveningAvgSystolic = null,
                 morningAvgDiastolic = null, eveningAvgDiastolic = null,
             )
@@ -104,6 +118,8 @@ class BloodPressureService(
             it.tag == MeasurementTag.EVENING || it.measuredAt.hour in 17..23
         }
 
+        val weightRecords = records.filter { it.weight != null }
+
         return StatsResponse(
             records = records.map { it.toResponse() },
             avgSystolic = records.map { it.systolic }.average(),
@@ -113,6 +129,11 @@ class BloodPressureService(
             minSystolic = records.minOf { it.systolic },
             maxDiastolic = records.maxOf { it.diastolic },
             minDiastolic = records.minOf { it.diastolic },
+            maxPulse = records.maxOf { it.pulse },
+            minPulse = records.minOf { it.pulse },
+            avgWeight = weightRecords.takeIf { it.isNotEmpty() }?.map { it.weight!! }?.average(),
+            maxWeight = weightRecords.takeIf { it.isNotEmpty() }?.maxOf { it.weight!! },
+            minWeight = weightRecords.takeIf { it.isNotEmpty() }?.minOf { it.weight!! },
             morningAvgSystolic = morningRecords.takeIf { it.isNotEmpty() }?.map { it.systolic }?.average(),
             eveningAvgSystolic = eveningRecords.takeIf { it.isNotEmpty() }?.map { it.systolic }?.average(),
             morningAvgDiastolic = morningRecords.takeIf { it.isNotEmpty() }?.map { it.diastolic }?.average(),
@@ -121,11 +142,12 @@ class BloodPressureService(
     }
 
     companion object {
-        fun classifyBpLevel(systolic: Int): BpLevel = when {
-            systolic < 120 -> BpLevel.NORMAL
-            systolic < 140 -> BpLevel.ELEVATED
-            systolic < 160 -> BpLevel.HIGH_1
-            else -> BpLevel.HIGH_2
+        fun classifyBpLevel(systolic: Int, diastolic: Int): BpLevel = when {
+            systolic < 90 || diastolic < 60 -> BpLevel.LOW
+            systolic >= 160 || diastolic >= 100 -> BpLevel.HIGH_2
+            systolic >= 140 || diastolic >= 90 -> BpLevel.HIGH_1
+            systolic >= 120 || diastolic >= 80 -> BpLevel.ELEVATED
+            else -> BpLevel.NORMAL
         }
     }
 }
@@ -137,6 +159,8 @@ fun BloodPressureRecord.toResponse() = RecordResponse(
     pulse = pulse,
     tag = tag,
     memo = memo,
-    level = BloodPressureService.classifyBpLevel(systolic),
+    level = BloodPressureService.classifyBpLevel(systolic, diastolic),
     measuredAt = measuredAt,
+    weight = weight,
+    measurementPosition = measurementPosition,
 )

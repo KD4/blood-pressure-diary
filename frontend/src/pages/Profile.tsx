@@ -1,11 +1,11 @@
 import { css } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Toggle } from '@toss/tds-mobile';
+import { Switch } from '@toss/tds-mobile';
 import { useAuth } from '../contexts/AuthContext';
 import { getNotificationSetting, updateNotificationSetting } from '../api/user';
 import type { NotificationSetting } from '../types';
-import { pageStyle, cardStyle } from '../styles/common';
+import { pageStyle } from '../styles/common';
 import { color, fontSize, spacing, radius, layout } from '../styles/tokens';
 
 export default function Profile() {
@@ -24,7 +24,7 @@ export default function Profile() {
       .catch(console.error);
   }, [isGuest]);
 
-  const handleToggleNotification = async (enabled: boolean) => {
+  const handleToggleNotification = async (_event: React.ChangeEvent<HTMLInputElement>, enabled: boolean) => {
     const updated = { ...notification, enabled };
     setNotification(updated);
     if (!isGuest) {
@@ -71,11 +71,11 @@ export default function Profile() {
       <h1 css={headingStyle}>설정</h1>
 
       {/* 측정 알림 */}
-      <div css={[cardStyle, sectionStyle]}>
+      <div css={sectionCardStyle}>
         <h3 css={sectionTitleStyle}>측정 알림</h3>
         <div css={settingRowStyle}>
           <span css={settingLabelStyle}>측정 알림 받기</span>
-          <Toggle
+          <Switch
             checked={notification.enabled}
             onChange={handleToggleNotification}
           />
@@ -90,7 +90,7 @@ export default function Profile() {
                 value={notification.morningHour ?? 7}
                 onChange={e => handleMorningHourChange(Number(e.target.value))}
               >
-                {Array.from({ length: 8 }, (_, i) => i + 5).map(h => (
+                {Array.from({ length: 11 }, (_, i) => i + 4).map(h => (
                   <option key={h} value={h}>{h}시</option>
                 ))}
               </select>
@@ -103,8 +103,8 @@ export default function Profile() {
                 value={notification.eveningHour ?? 21}
                 onChange={e => handleEveningHourChange(Number(e.target.value))}
               >
-                {Array.from({ length: 8 }, (_, i) => i + 17).map(h => (
-                  <option key={h} value={h}>{h}시</option>
+                {Array.from({ length: 9 }, (_, i) => i + 16).map(h => (
+                  <option key={h} value={h}>{h === 24 ? '24(자정)' : `${h}`}시</option>
                 ))}
               </select>
             </div>
@@ -113,7 +113,7 @@ export default function Profile() {
       </div>
 
       {/* 단위 */}
-      <div css={[cardStyle, sectionStyle]}>
+      <div css={sectionCardStyle}>
         <h3 css={sectionTitleStyle}>단위</h3>
         <div css={settingRowStyle}>
           <span css={settingLabelStyle}>혈압 단위</span>
@@ -122,7 +122,7 @@ export default function Profile() {
       </div>
 
       {/* 계정 */}
-      <div css={[cardStyle, sectionStyle]}>
+      <div css={sectionCardStyle}>
         <h3 css={sectionTitleStyle}>계정</h3>
         {isGuest && (
           <p css={guestNoticeStyle}>
@@ -141,10 +141,12 @@ const headingStyle = css`
   font-size: ${fontSize.title}px;
   font-weight: 700;
   color: ${color.text};
-  margin: ${spacing.xl}px 0 ${spacing.lg}px;
+  margin-bottom: ${spacing.lg}px;
 `;
 
-const sectionStyle = css`
+const sectionCardStyle = css`
+  background: ${color.bgCard};
+  border-radius: ${radius.card}px;
   padding: ${spacing.xl}px;
   margin-bottom: ${spacing.lg}px;
 `;

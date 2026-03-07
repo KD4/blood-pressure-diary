@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개인정보 수집·이용 동의 - 혈압 다이어리</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+    :root {
+      --red: #C0392B;
+      --red-light: #f8e9e8;
+      --dark: #1a1a2e;
+      --text: #2d2d2d;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #fafafa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+      font-size: 15px;
+    }
+
+    header {
+      background: var(--dark);
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    header .logo {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 18px;
+      color: #fff;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    header .logo span {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      background: var(--red);
+      border-radius: 50%;
+      line-height: 28px;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 60px auto;
+      padding: 0 24px 80px;
+    }
+
+    .doc-header {
+      border-bottom: 3px solid var(--dark);
+      padding-bottom: 28px;
+      margin-bottom: 48px;
+    }
+
+    .doc-header h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    .doc-header .date {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    .intro {
+      background: var(--red-light);
+      border-left: 4px solid var(--red);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 36px;
+      font-size: 14px;
+      color: var(--dark);
+      font-weight: 300;
+    }
+
+    h2 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 44px 0 14px;
+      padding-left: 14px;
+      border-left: 3px solid var(--red);
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: var(--text);
+      font-weight: 300;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f5f5f8;
+    }
+
+    tbody td {
+      padding: 13px 16px;
+      vertical-align: top;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    .notice-box {
+      margin-top: 16px;
+      padding: 14px 18px;
+      background: #fff8e1;
+      border-radius: 8px;
+      border: 1px solid #ffe082;
+      font-size: 13px;
+      color: #5a4a00;
+      font-weight: 300;
+    }
+
+    .notice-box strong {
+      font-weight: 500;
+    }
+
+    .warning-box {
+      margin-top: 10px;
+      padding: 14px 18px;
+      background: #fff3f2;
+      border-radius: 8px;
+      border: 1px solid #ffc9c5;
+      font-size: 13px;
+      color: #7a1f1a;
+      font-weight: 300;
+    }
+
+    .contact-box {
+      margin-top: 52px;
+      background: var(--red-light);
+      border-radius: 10px;
+      padding: 24px 28px;
+      border: 1px solid #f0d0ce;
+    }
+
+    .contact-box p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .contact-box strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: var(--dark);
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: var(--dark);
+      color: #9ca3af;
+      font-size: 12px;
+      font-weight: 300;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span>♥</span> 혈압 다이어리
+  </div>
+</header>
+
+<div class="container">
+  <div class="doc-header">
+    <h1>개인정보 수집·이용 동의</h1>
+    <p class="date">시행일: 2026년 3월 7일</p>
+  </div>
+
+  <div class="intro">
+    혈압 다이어리(이하 "서비스")는 아래와 같이 개인정보를 수집·이용합니다.
+  </div>
+
+  <h2>수집하는 개인정보 항목 및 이용 목적</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>수집 항목</th>
+        <th>수집 목적</th>
+        <th>보유 기간</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Apple 로그인 식별자<br>(userIdentifier)</td>
+        <td>회원 식별 및 서비스 이용 관리</td>
+        <td>회원 탈퇴 시 즉시 파기</td>
+      </tr>
+      <tr>
+        <td>수축기 혈압, 이완기 혈압, 맥박</td>
+        <td>혈압 데이터 기록 및 건강 추이 통계 제공</td>
+        <td>회원 탈퇴 시 즉시 파기</td>
+      </tr>
+      <tr>
+        <td>측정 일시, 메모</td>
+        <td>기록 관리 및 개인화된 건강 이력 조회</td>
+        <td>회원 탈퇴 시 즉시 파기</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="notice-box">
+    <strong>안내:</strong> 위 항목 외 이름, 이메일, 전화번호 등 추가 개인정보는 수집하지 않습니다.
+  </div>
+
+  <h2>동의 거부 시 불이익</h2>
+  <div class="warning-box">
+    위 개인정보 수집·이용에 동의하지 않을 수 있으나, 동의를 거부할 경우 서비스 이용이 제한됩니다.
+  </div>
+
+  <div class="contact-box">
+    <strong>문의</strong>
+    <p>개인정보 관련 문의: kangddanddan@gmail.com</p>
+  </div>
+
+  <p style="margin-top: 40px; color: var(--muted); font-size: 13px;">본 동의서는 2026년 3월 7일부터 시행됩니다.</p>
+</div>
+
+<footer>
+  © 2026 혈압 다이어리. All rights reserved.
+</footer>
+
+</body>
+</html>

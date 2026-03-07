@@ -38,6 +38,15 @@ class BloodPressureController(
         return ResponseEntity.ok(bloodPressureService.getStats(userId, days))
     }
 
+    @GetMapping("/records")
+    fun getRecords(
+        @RequestParam(defaultValue = "30") days: Int,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<List<RecordResponse>> {
+        val userId = httpRequest.getAttribute("userId") as Long
+        return ResponseEntity.ok(bloodPressureService.getRecords(userId, days))
+    }
+
     @DeleteMapping("/records/{id}")
     fun deleteRecord(
         @PathVariable id: Long,

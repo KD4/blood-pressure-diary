@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
-import { Button } from '@toss/tds-mobile';
+import { useState } from 'react';
+import { CTAButton } from '@toss/tds-mobile';
 import { appLogin } from '@apps-in-toss/web-framework';
 import { oauthLogin } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,35 +8,53 @@ import { useNavigate } from 'react-router-dom';
 import { color, fontSize, spacing } from '../styles/tokens';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTossLogin = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { authorizationCode, referrer } = await appLogin();
       const { token, isNewUser } = await oauthLogin('toss', authorizationCode, referrer);
       login(token, isNewUser);
-      navigate(isNewUser ? '/onboarding' : '/home', { replace: true });
-    } catch (error) {
-      console.error('토스 로그인 실패:', error);
+      navigate(isNewUser ? '/onboarding' : '/record', { replace: true });
+    } catch (err) {
+      console.error('토스 로그인 실패:', err);
+      setError('로그인에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleGuestStart = () => {
+    loginAsGuest();
+    navigate('/record', { replace: true });
   };
 
   return (
     <div css={containerStyle}>
-      <div css={logoAreaStyle}>
+      <div css={logoCardStyle}>
         <div css={heartIconStyle}>❤️</div>
         <h1 css={titleStyle}>혈압다이어리</h1>
         <p css={descStyle}>
           매일 혈압을 기록하고{'\n'}
-          건강 추이를 한눈에 확인하세요
+          건강 변화를 한눈에 확인하세요
         </p>
       </div>
 
+      {error && <p css={errorStyle}>{error}</p>}
+
       <div css={buttonAreaStyle}>
-        <Button.Primary size="large" onClick={handleTossLogin}>
+        {/* @ts-expect-error CTAButton children type mismatch with framer-motion */}
+        <CTAButton onClick={handleTossLogin} loading={loading}>
           토스로 시작하기
-        </Button.Primary>
+        </CTAButton>
+        <button css={guestButtonStyle} onClick={handleGuestStart}>
+          로그인 없이 둘러보기
+        </button>
       </div>
     </div>
   );
@@ -48,14 +67,17 @@ const containerStyle = css`
   justify-content: center;
   min-height: 100dvh;
   padding: 20px;
+  background: ${color.bgPage};
 `;
 
-const logoAreaStyle = css`
+const logoCardStyle = css`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: ${spacing.md}px;
   margin-bottom: 60px;
+  width: 100%;
+  max-width: 320px;
 `;
 
 const heartIconStyle = css`
@@ -76,10 +98,27 @@ const descStyle = css`
   line-height: 1.6;
 `;
 
+const errorStyle = css`
+  font-size: ${fontSize.label}px;
+  color: ${color.danger};
+  text-align: center;
+  margin-bottom: ${spacing.md}px;
+`;
+
 const buttonAreaStyle = css`
   width: 100%;
   max-width: 320px;
   display: flex;
   flex-direction: column;
   gap: ${spacing.md}px;
+`;
+
+const guestButtonStyle = css`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: ${fontSize.body}px;
+  color: ${color.textSecondary};
+  padding: ${spacing.md}px;
+  text-align: center;
 `;

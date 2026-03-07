@@ -1,21 +1,40 @@
 import { adaptive } from '@toss/tds-colors';
 
 export const color = {
+  // TDS adaptive 기본
   bgPage: adaptive.grey50,
   bgCard: adaptive.background,
-  primary: '#27AE60',
-  primaryLight: adaptive.green50,
-  danger: '#C0392B',
+  primary: adaptive.blue500,
+  primaryLight: adaptive.blue50,
+  danger: adaptive.red500,
   dangerLight: adaptive.red50,
-  warning: '#F39C12',
+  warning: adaptive.orange500,
   warningLight: adaptive.orange50,
-  caution: '#E67E22',
-  success: '#27AE60',
+  caution: adaptive.orange600,
+  success: adaptive.green500,
   successLight: adaptive.green50,
   border: adaptive.grey200,
   text: adaptive.grey900,
   textSecondary: adaptive.grey600,
-  textTertiary: adaptive.grey500,
+  textTertiary: adaptive.grey400,
+  // 그라디언트 배경
+  bgGradientStart: '#1a3a5c',
+  bgGradientEnd: '#87CEEB',
+  // 다크 카드
+  bgCardDark: '#1E2A3A',
+  textOnDark: '#FFFFFF',
+  textSecondaryOnDark: 'rgba(255, 255, 255, 0.6)',
+  placeholderOnDark: 'rgba(255, 255, 255, 0.3)',
+  // 네비게이션
+  bgNav: adaptive.grey900,
+} as const;
+
+// 혈압 레벨 색상 (의료 표준 색상이므로 TDS 색상과 별도 관리)
+export const bpColor = {
+  normal: adaptive.green500,
+  elevated: adaptive.orange400,
+  high1: adaptive.orange600,
+  high2: adaptive.red500,
 } as const;
 
 export const spacing = {
@@ -38,17 +57,17 @@ export const radius = {
 
 export const layout = {
   pagePaddingH: 20,
-  navHeight: 60,
-  minTouchTarget: 56,  // 4060 타겟: 최소 56dp
+  navHeight: 76,
+  minTouchTarget: 56,
 } as const;
 
-// 4060 타겟 폰트 크기 (sp 기준)
+// 어르신 친화 폰트 크기
 export const fontSize = {
-  body: 17,           // 본문 최소 17sp
-  number: 24,         // 숫자 최소 24sp
-  numberLarge: 32,    // 큰 숫자
-  label: 14,
-  caption: 12,
-  heading: 20,
-  title: 24,
+  body: 20,
+  number: 32,
+  numberLarge: 40,
+  label: 17,
+  caption: 15,
+  heading: 24,
+  title: 28,
 } as const;

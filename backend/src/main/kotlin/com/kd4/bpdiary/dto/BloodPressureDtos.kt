@@ -1,5 +1,6 @@
 package com.kd4.bpdiary.dto
 
+import com.kd4.bpdiary.entity.MeasurementPosition
 import com.kd4.bpdiary.entity.MeasurementTag
 import java.time.LocalDateTime
 
@@ -10,6 +11,8 @@ data class RecordRequest(
     val tag: MeasurementTag? = null,
     val memo: String? = null,
     val measuredAt: LocalDateTime? = null,
+    val weight: Int? = null,
+    val measurementPosition: MeasurementPosition? = null,
 )
 
 data class RecordResponse(
@@ -21,9 +24,12 @@ data class RecordResponse(
     val memo: String?,
     val level: BpLevel,
     val measuredAt: LocalDateTime,
+    val weight: Int?,
+    val measurementPosition: MeasurementPosition?,
 )
 
 enum class BpLevel(val label: String, val color: String) {
+    LOW("저혈압", "#3498DB"),
     NORMAL("정상", "#27AE60"),
     ELEVATED("주의", "#F39C12"),
     HIGH_1("고혈압 1단계", "#E67E22"),
@@ -39,6 +45,11 @@ data class StatsResponse(
     val minSystolic: Int,
     val maxDiastolic: Int,
     val minDiastolic: Int,
+    val maxPulse: Int,
+    val minPulse: Int,
+    val avgWeight: Double?,
+    val maxWeight: Int?,
+    val minWeight: Int?,
     val morningAvgSystolic: Double?,
     val eveningAvgSystolic: Double?,
     val morningAvgDiastolic: Double?,

@@ -63,9 +63,9 @@ class TossOAuthClient(
 
     private fun createMtlsRestTemplate(): RestTemplate {
         val certPem = if (mtlsCert.isNotBlank()) mtlsCert
-                      else loadClasspathResource("bp-diary_public.crt")
+                      else loadClasspathResource("bp-railway_public.crt")
         val keyPem = if (mtlsKey.isNotBlank()) mtlsKey
-                     else loadClasspathResource("bp-diary_private.key")
+                     else loadClasspathResource("bp-railway_private.key")
 
         val cert = parseCertificate(certPem)
         val key = parsePrivateKey(keyPem)

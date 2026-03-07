@@ -1,10 +1,8 @@
 import { css } from '@emotion/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getStats } from '../api/bp';
-import { useInterstitialAd } from '../hooks/useInterstitialAd';
-import { BP_LEVEL_CONFIG } from '../types';
-import type { StatsResponse } from '../types';
-import { pageStyle, cardStyle } from '../styles/common';
+import type { StatsResponse, RecordResponse } from '../types';
+import { pageStyle, darkCardStyle } from '../styles/common';
 import { color, fontSize, spacing, radius } from '../styles/tokens';
 
 const PERIOD_OPTIONS = [
@@ -13,11 +11,219 @@ const PERIOD_OPTIONS = [
   { label: '90일', value: 90 },
 ];
 
+// SVG attribute에는 CSS 변수(var(--xxx))를 직접 쓸 수 없으므로 고정 색상 사용
+const SVG_COLORS = {
+  grid: '#E5E8EB',
+  label: '#B0B8C1',
+};
+
+const MIN_POINT_SPACING = 40;
+
+function SvgLineChart({ records, dataKeys, colors: lineColors, labels, height = 200 }: {
+  records: RecordResponse[];
+  dataKeys: (keyof RecordResponse)[];
+  colors: string[];
+  labels: string[];
+  height?: number;
+}) {
+  if (records.length === 0) return null;
+
+  const sorted = [...records].sort((a, b) =>
+    new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime()
+  );
+  const tooltipH = 20 + dataKeys.length * 18;
+  const padding = { top: tooltipH + 10, right: 16, bottom: 48, left: 46 };
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useState(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setContainerW(el.clientWidth);
+    const ro = new ResizeObserver(([entry]) => setContainerW(entry.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const naturalW = padding.left + padding.right + Math.max(sorted.length - 1, 1) * MIN_POINT_SPACING;
+  const chartW = containerW > 0 ? Math.max(naturalW, containerW) : naturalW;
+  const chartH = height;
+  const innerW = chartW - padding.left - padding.right;
+  const innerH = chartH - padding.top - padding.bottom;
+
+  const allValues = dataKeys.flatMap(key => sorted.map(r => r[key] as number));
+  const minVal = Math.floor(Math.min(...allValues) * 0.9);
+  const maxVal = Math.ceil(Math.max(...allValues) * 1.1);
+  const range = maxVal - minVal || 1;
+
+  const getX = (i: number) => padding.left + (innerW / Math.max(sorted.length - 1, 1)) * i;
+  const getY = (v: number) => padding.top + innerH - ((v - minVal) / range) * innerH;
+
+  const gridLines = 4;
+  const gridValues = Array.from({ length: gridLines + 1 }, (_, i) =>
+    Math.round(minVal + (range / gridLines) * i)
+  );
+
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) el.addEventListener('scroll', checkScroll, { passive: true });
+    return () => { el?.removeEventListener('scroll', checkScroll); };
+  }, [checkScroll, sorted.length, chartW]);
+
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+  };
+
+  return (
+    <div css={chartWrapperStyle}>
+      {canScrollLeft && (
+        <button css={scrollBtnStyle('left')} onClick={() => scroll('left')} aria-label="왼쪽 스크롤">
+          ◀
+        </button>
+      )}
+      {canScrollRight && (
+        <button css={scrollBtnStyle('right')} onClick={() => scroll('right')} aria-label="오른쪽 스크롤">
+          ▶
+        </button>
+      )}
+
+      <div ref={scrollRef} css={chartScrollStyle}>
+        <svg width={chartW} height={chartH} viewBox={`0 0 ${chartW} ${chartH}`}>
+          {/* 그리드 */}
+          {gridValues.map(v => (
+            <g key={v}>
+              <line x1={padding.left} y1={getY(v)} x2={chartW - padding.right} y2={getY(v)}
+                stroke={SVG_COLORS.grid} strokeWidth={0.5} strokeDasharray="4,4" />
+              <text x={padding.left - 8} y={getY(v) + 5} textAnchor="end"
+                fill={SVG_COLORS.label} fontSize={13} fontWeight={500}>{v}</text>
+            </g>
+          ))}
+
+          {/* 라인 + 점 */}
+          {dataKeys.map((key, ki) => {
+            const points = sorted.map((r, i) => `${getX(i)},${getY(r[key] as number)}`);
+            return (
+              <g key={String(key)}>
+                <polyline points={points.join(' ')} fill="none"
+                  stroke={lineColors[ki]} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                {sorted.map((r, i) => (
+                  <circle key={i} cx={getX(i)} cy={getY(r[key] as number)}
+                    r={4} fill={lineColors[ki]} stroke="#fff" strokeWidth={1.5} />
+                ))}
+              </g>
+            );
+          })}
+
+          {/* X축 날짜 + 시간 */}
+          {sorted.map((r, i) => {
+            const d = new Date(r.measuredAt);
+            const datePart = `${d.getMonth() + 1}/${d.getDate()}`;
+            const timePart = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            if (sorted.length > 10 && i % Math.ceil(sorted.length / 10) !== 0) return null;
+            return (
+              <g key={i}>
+                <text x={getX(i)} y={chartH - 18} textAnchor="middle"
+                  fill={SVG_COLORS.label} fontSize={11} fontWeight={500}>{datePart}</text>
+                <text x={getX(i)} y={chartH - 5} textAnchor="middle"
+                  fill={SVG_COLORS.label} fontSize={10}>{timePart}</text>
+              </g>
+            );
+          })}
+
+          {/* 탭 영역 (투명 히트 타겟) */}
+          {sorted.map((_, i) => {
+            const hitW = innerW / Math.max(sorted.length, 1);
+            return (
+              <rect key={`hit-${i}`}
+                x={getX(i) - hitW / 2} y={padding.top} width={hitW} height={innerH}
+                fill="transparent" style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
+              />
+            );
+          })}
+
+          {/* 선택된 포인트: 가이드라인 + 강조 */}
+          {selectedIdx != null && (
+            <g>
+              <line
+                x1={getX(selectedIdx)} y1={padding.top}
+                x2={getX(selectedIdx)} y2={padding.top + innerH}
+                stroke="#666" strokeWidth={1} strokeDasharray="4,4"
+              />
+              {dataKeys.map((key, ki) => (
+                <circle key={`sel-${ki}`}
+                  cx={getX(selectedIdx)}
+                  cy={getY(sorted[selectedIdx][key] as number)}
+                  r={7} fill={lineColors[ki]} stroke="#fff" strokeWidth={2}
+                />
+              ))}
+            </g>
+          )}
+
+          {/* 툴팁 */}
+          {selectedIdx != null && (() => {
+            const r = sorted[selectedIdx];
+            const x = getX(selectedIdx);
+            const d = new Date(r.measuredAt);
+            const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            const tooltipW = 130;
+            const tooltipH = 20 + dataKeys.length * 18;
+            const tooltipX = Math.max(padding.left, Math.min(x - tooltipW / 2, chartW - padding.right - tooltipW));
+            const tooltipY = Math.max(2, padding.top - tooltipH - 8);
+
+            return (
+              <g>
+                <rect x={tooltipX} y={tooltipY} width={tooltipW} height={tooltipH}
+                  rx={6} fill="rgba(30,42,58,0.92)" />
+                <text x={tooltipX + tooltipW / 2} y={tooltipY + 16}
+                  textAnchor="middle" fill="#fff" fontSize={11} fontWeight={500}>
+                  {dateStr}
+                </text>
+                {dataKeys.map((key, ki) => (
+                  <text key={ki} x={tooltipX + tooltipW / 2} y={tooltipY + 34 + ki * 18}
+                    textAnchor="middle" fill={lineColors[ki]} fontSize={12} fontWeight={700}>
+                    {labels[ki]} {r[key]}
+                  </text>
+                ))}
+              </g>
+            );
+          })()}
+        </svg>
+      </div>
+
+      {/* 범례 */}
+      <div css={chartLegendStyle}>
+        {labels.map((l, i) => (
+          <div key={l} css={chartLegendItemStyle}>
+            <span css={chartLegendDotStyle(lineColors[i])} />
+            <span>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Statistics() {
   const [days, setDays] = useState(7);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const { showAd } = useInterstitialAd(import.meta.env.VITE_AD_INTERSTITIAL_ID);
 
   useEffect(() => {
     setLoading(true);
@@ -27,16 +233,8 @@ export default function Statistics() {
       .finally(() => setLoading(false));
   }, [days]);
 
-  const handleShare = async () => {
-    await showAd();
-    // TODO: 리포트 이미지 생성 및 공유
-    alert('리포트 공유 기능은 추후 업데이트 예정입니다.');
-  };
-
   return (
     <div css={pageStyle}>
-      <h1 css={headingStyle}>통계</h1>
-
       {/* 기간 선택 */}
       <div css={periodSelectorStyle}>
         {PERIOD_OPTIONS.map(opt => (
@@ -58,113 +256,83 @@ export default function Statistics() {
         </div>
       ) : (
         <>
-          {/* 평균/최고/최저 요약 */}
-          <div css={[cardStyle, summaryCardStyle]}>
-            <h3 css={sectionTitleStyle}>평균</h3>
-            <div css={summaryRowStyle}>
-              <div css={summaryItemStyle}>
-                <span css={summaryLabelStyle}>수축기</span>
-                <span css={summaryValueStyle}>{stats.avgSystolic.toFixed(0)}</span>
+          {/* 다크 카드: 요약 테이블 */}
+          <div css={darkCardStyle}>
+            <h3 css={darkSectionTitleStyle}>요약</h3>
+            <div css={statsTableStyle}>
+              <div css={statsHeaderRowStyle}>
+                <div css={statsHeaderCellStyle} />
+                <div css={statsHeaderCellStyle}>최대</div>
+                <div css={statsHeaderCellStyle}>최소</div>
+                <div css={statsHeaderCellStyle}>평균</div>
               </div>
-              <div css={summaryItemStyle}>
-                <span css={summaryLabelStyle}>이완기</span>
-                <span css={summaryValueStyle}>{stats.avgDiastolic.toFixed(0)}</span>
+              <div css={statsDataRowStyle}>
+                <div css={statsLabelCellStyle}>수축기</div>
+                <div css={statsValueCellStyle}>{stats.maxSystolic}</div>
+                <div css={statsValueCellStyle}>{stats.minSystolic}</div>
+                <div css={statsValueCellStyle}>{stats.avgSystolic.toFixed(0)}</div>
               </div>
-              <div css={summaryItemStyle}>
-                <span css={summaryLabelStyle}>맥박</span>
-                <span css={summaryValueStyle}>{stats.avgPulse.toFixed(0)}</span>
+              <div css={statsDataRowStyle}>
+                <div css={statsLabelCellStyle}>이완기</div>
+                <div css={statsValueCellStyle}>{stats.maxDiastolic}</div>
+                <div css={statsValueCellStyle}>{stats.minDiastolic}</div>
+                <div css={statsValueCellStyle}>{stats.avgDiastolic.toFixed(0)}</div>
               </div>
-            </div>
-
-            <div css={rangeRowStyle}>
-              <span css={rangeLabelStyle}>수축기 범위</span>
-              <span css={rangeValueStyle}>{stats.minSystolic} ~ {stats.maxSystolic}</span>
-            </div>
-            <div css={rangeRowStyle}>
-              <span css={rangeLabelStyle}>이완기 범위</span>
-              <span css={rangeValueStyle}>{stats.minDiastolic} ~ {stats.maxDiastolic}</span>
+              <div css={statsDataRowStyle}>
+                <div css={statsLabelCellStyle}>맥박</div>
+                <div css={statsValueCellStyle}>{stats.maxPulse}</div>
+                <div css={statsValueCellStyle}>{stats.minPulse}</div>
+                <div css={statsValueCellStyle}>{stats.avgPulse.toFixed(0)}</div>
+              </div>
             </div>
           </div>
 
-          {/* 아침 vs 저녁 비교 */}
-          {(stats.morningAvgSystolic != null || stats.eveningAvgSystolic != null) && (
-            <div css={[cardStyle, comparisonCardStyle]}>
-              <h3 css={sectionTitleStyle}>아침 vs 저녁</h3>
-              <div css={comparisonRowStyle}>
-                <div css={comparisonItemStyle}>
-                  <span css={comparisonLabelStyle}>아침 평균</span>
-                  <span css={comparisonValueStyle}>
-                    {stats.morningAvgSystolic != null
-                      ? `${stats.morningAvgSystolic.toFixed(0)}/${stats.morningAvgDiastolic?.toFixed(0)}`
-                      : '-'}
-                  </span>
-                </div>
-                <div css={comparisonItemStyle}>
-                  <span css={comparisonLabelStyle}>저녁 평균</span>
-                  <span css={comparisonValueStyle}>
-                    {stats.eveningAvgSystolic != null
-                      ? `${stats.eveningAvgSystolic.toFixed(0)}/${stats.eveningAvgDiastolic?.toFixed(0)}`
-                      : '-'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 꺾은선 그래프 (간단 바 차트) */}
-          <div css={[cardStyle, chartCardStyle]}>
-            <h3 css={sectionTitleStyle}>혈압 추이</h3>
-            <div css={chartStyle}>
-              {stats.records.slice().reverse().map((record, i) => {
-                const sysHeight = Math.max(10, Math.min(80, (record.systolic - 80) * 0.8));
-                const diaHeight = Math.max(10, Math.min(60, (record.diastolic - 40) * 0.8));
-                const levelColor = BP_LEVEL_CONFIG[record.level].color;
-                return (
-                  <div key={i} css={chartBarGroupStyle}>
-                    <div css={chartBarStyle(sysHeight, levelColor)} title={`${record.systolic}`} />
-                    <div css={chartBarStyle(diaHeight, `${levelColor}80`)} title={`${record.diastolic}`} />
-                    <span css={chartDateStyle}>
-                      {new Date(record.measuredAt).getDate()}일
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+          {/* 화이트 카드: 혈압 변화 차트 */}
+          <div css={whiteChartCardStyle}>
+            <h3 css={chartTitleStyle}>혈압 변화</h3>
+            <SvgLineChart
+              records={stats.records}
+              dataKeys={['systolic', 'diastolic']}
+              colors={['#E74C3C', '#3498DB']}
+              labels={['수축기', '이완기']}
+              height={220}
+            />
           </div>
 
-          {/* 리포트 공유 */}
-          <button css={shareButtonStyle} onClick={handleShare}>
-            리포트 공유하기
-          </button>
+          {/* 화이트 카드: 맥박 변화 차트 */}
+          <div css={whiteChartCardStyle}>
+            <h3 css={chartTitleStyle}>맥박 변화</h3>
+            <SvgLineChart
+              records={stats.records}
+              dataKeys={['pulse']}
+              colors={['#27AE60']}
+              labels={['맥박']}
+              height={160}
+            />
+          </div>
         </>
       )}
     </div>
   );
 }
 
-const headingStyle = css`
-  font-size: ${fontSize.title}px;
-  font-weight: 700;
-  color: ${color.text};
-  margin: ${spacing.xl}px 0 ${spacing.lg}px;
-`;
-
+// === Styles ===
 const periodSelectorStyle = css`
   display: flex;
   gap: ${spacing.sm}px;
-  margin-bottom: ${spacing.xl}px;
+  margin-bottom: ${spacing.lg}px;
 `;
 
 const periodButtonStyle = css`
   flex: 1;
-  padding: ${spacing.md}px;
+  padding: ${spacing.sm}px;
   border: 1px solid ${color.border};
   border-radius: ${radius.pill}px;
   background: ${color.bgCard};
   color: ${color.textSecondary};
-  font-size: ${fontSize.body}px;
+  font-size: ${fontSize.label}px;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 40px;
 `;
 
 const periodActiveStyle = css`
@@ -187,136 +355,115 @@ const emptyStyle = css`
   padding: ${spacing.xxl * 2}px;
 `;
 
-const summaryCardStyle = css`
-  padding: ${spacing.xl}px;
+// 다크 카드 테이블
+const darkSectionTitleStyle = css`
+  font-size: ${fontSize.body}px;
+  font-weight: 600;
+  color: ${color.textOnDark};
   margin-bottom: ${spacing.lg}px;
 `;
 
-const sectionTitleStyle = css`
+const statsTableStyle = css`
+  display: flex;
+  flex-direction: column;
+`;
+
+const statsHeaderRowStyle = css`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: ${spacing.sm}px;
+  margin-bottom: ${spacing.sm}px;
+`;
+
+const statsHeaderCellStyle = css`
+  font-size: ${fontSize.caption}px;
+  color: ${color.textSecondaryOnDark};
+  text-align: center;
+`;
+
+const statsDataRowStyle = css`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: ${spacing.sm}px;
+  padding: ${spacing.sm}px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+`;
+
+const statsLabelCellStyle = css`
+  font-size: ${fontSize.label}px;
+  color: ${color.textSecondaryOnDark};
+  text-align: center;
+`;
+
+const statsValueCellStyle = css`
+  font-size: ${fontSize.body}px;
+  font-weight: 700;
+  color: ${color.textOnDark};
+  text-align: center;
+`;
+
+// 차트 카드
+const whiteChartCardStyle = css`
+  background: ${color.bgCard};
+  border-radius: ${radius.card}px;
+  padding: ${spacing.lg}px ${spacing.xl}px;
+  margin-top: ${spacing.md}px;
+`;
+
+const chartTitleStyle = css`
   font-size: ${fontSize.body}px;
   font-weight: 600;
   color: ${color.text};
-  margin-bottom: ${spacing.lg}px;
+  margin-bottom: ${spacing.md}px;
 `;
 
-const summaryRowStyle = css`
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: ${spacing.lg}px;
-`;
-
-const summaryItemStyle = css`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${spacing.xs}px;
-`;
-
-const summaryLabelStyle = css`
-  font-size: ${fontSize.label}px;
-  color: ${color.textSecondary};
-`;
-
-const summaryValueStyle = css`
-  font-size: ${fontSize.number}px;
-  font-weight: 700;
-  color: ${color.text};
-`;
-
-const rangeRowStyle = css`
-  display: flex;
-  justify-content: space-between;
-  padding: ${spacing.sm}px 0;
-  border-top: 1px solid ${color.border};
-`;
-
-const rangeLabelStyle = css`
-  font-size: ${fontSize.label}px;
-  color: ${color.textSecondary};
-`;
-
-const rangeValueStyle = css`
-  font-size: ${fontSize.label}px;
-  font-weight: 600;
-  color: ${color.text};
-`;
-
-const comparisonCardStyle = css`
-  padding: ${spacing.xl}px;
-  margin-bottom: ${spacing.lg}px;
-`;
-
-const comparisonRowStyle = css`
-  display: flex;
-  justify-content: space-around;
-`;
-
-const comparisonItemStyle = css`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${spacing.xs}px;
-`;
-
-const comparisonLabelStyle = css`
-  font-size: ${fontSize.label}px;
-  color: ${color.textSecondary};
-`;
-
-const comparisonValueStyle = css`
-  font-size: ${fontSize.heading}px;
-  font-weight: 700;
-  color: ${color.text};
-`;
-
-const chartCardStyle = css`
-  padding: ${spacing.xl}px;
-  margin-bottom: ${spacing.lg}px;
-`;
-
-const chartStyle = css`
-  display: flex;
-  align-items: flex-end;
-  gap: ${spacing.xs}px;
-  height: 120px;
-  overflow-x: auto;
-  padding-bottom: ${spacing.xl}px;
-`;
-
-const chartBarGroupStyle = css`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  flex: 1;
-  min-width: 16px;
+const chartWrapperStyle = css`
   position: relative;
 `;
 
-const chartBarStyle = (height: number, barColor: string) => css`
-  width: 100%;
-  height: ${height}px;
-  background: ${barColor};
-  border-radius: 3px 3px 0 0;
-`;
-
-const chartDateStyle = css`
+const scrollBtnStyle = (dir: 'left' | 'right') => css`
   position: absolute;
-  bottom: -18px;
-  font-size: 9px;
-  color: ${color.textTertiary};
-  white-space: nowrap;
+  top: 50%;
+  ${dir}: 0;
+  transform: translateY(-70%);
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 `;
 
-const shareButtonStyle = css`
-  width: 100%;
-  padding: ${spacing.lg}px;
-  background: ${color.bgCard};
-  border: 1px solid ${color.border};
-  border-radius: ${radius.medium}px;
-  font-size: ${fontSize.body}px;
-  color: ${color.text};
-  cursor: pointer;
-  text-align: center;
-  margin-bottom: ${spacing.lg}px;
+const chartScrollStyle = css`
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const chartLegendStyle = css`
+  display: flex;
+  justify-content: center;
+  gap: ${spacing.lg}px;
+  margin-top: ${spacing.sm}px;
+`;
+
+const chartLegendItemStyle = css`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs}px;
+  font-size: ${fontSize.caption}px;
+  color: ${color.textSecondary};
+`;
+
+const chartLegendDotStyle = (c: string) => css`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${c};
 `;

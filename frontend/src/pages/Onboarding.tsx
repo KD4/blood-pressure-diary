@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Button } from '@toss/tds-mobile';
+import { CTAButton } from '@toss/tds-mobile';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { color, fontSize, spacing } from '../styles/tokens';
@@ -13,12 +13,12 @@ export default function Onboarding() {
     if (isNewUser) {
       localStorage.setItem('isNewUser', 'false');
     }
-    navigate('/home', { replace: true });
+    navigate('/record', { replace: true });
   };
 
   const handleGuestStart = () => {
     loginAsGuest();
-    navigate('/home', { replace: true });
+    navigate('/record', { replace: true });
   };
 
   return (
@@ -32,7 +32,7 @@ export default function Onboarding() {
 
         <div css={stepStyle}>
           <div css={stepIconStyle}>📈</div>
-          <h2 css={stepTitleStyle}>추이를 확인하세요</h2>
+          <h2 css={stepTitleStyle}>변화를 확인하세요</h2>
           <p css={stepDescStyle}>그래프로 혈압 변화를 한눈에 볼 수 있어요</p>
         </div>
 
@@ -44,9 +44,10 @@ export default function Onboarding() {
       </div>
 
       <div css={buttonAreaStyle}>
-        <Button.Primary size="large" onClick={handleStart}>
+        {/* @ts-expect-error CTAButton children type mismatch with framer-motion */}
+        <CTAButton onClick={handleStart}>
           시작하기
-        </Button.Primary>
+        </CTAButton>
         {!isGuest && (
           <button css={guestButtonStyle} onClick={handleGuestStart}>
             로그인 없이 둘러보기
@@ -109,3 +110,4 @@ const guestButtonStyle = css`
   padding: ${spacing.md}px;
   text-align: center;
 `;
+

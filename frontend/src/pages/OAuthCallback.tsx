@@ -21,7 +21,7 @@ export default function OAuthCallback() {
     oauthLogin('toss', code, referrer ?? undefined)
       .then(({ token, isNewUser }) => {
         login(token, isNewUser);
-        navigate(isNewUser ? '/onboarding' : '/home', { replace: true });
+        navigate(isNewUser ? '/onboarding' : '/record', { replace: true });
       })
       .catch(() => {
         navigate('/login', { replace: true });
