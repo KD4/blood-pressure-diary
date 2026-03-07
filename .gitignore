@@ -1,0 +1,36 @@
+### Backend (Gradle/Kotlin) ###
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+.kotlin
+
+### Frontend (Node) ###
+node_modules/
+dist/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Env ###
+.env
+.env.local
+
+application-local.yml
+backend/src/main/resources/*_public.crt
+backend/src/main/resources/*_private.key
+
+frontend/.env.production
+backend/bin/
+*.ait
