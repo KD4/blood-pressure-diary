@@ -5,6 +5,8 @@ import { appLogin } from '@apps-in-toss/web-framework';
 import { oauthLogin } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useExitConfirm } from '../hooks/useExitConfirm';
+import { useBackEvent } from '../hooks/useBackEvent';
 import { color, fontSize, spacing } from '../styles/tokens';
 
 export default function Login() {
@@ -12,6 +14,8 @@ export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { openExitDialog, ExitConfirmDialog } = useExitConfirm();
+  useBackEvent(openExitDialog);
 
   const handleTossLogin = async () => {
     setLoading(true);
@@ -36,6 +40,7 @@ export default function Login() {
 
   return (
     <div css={containerStyle}>
+      <ExitConfirmDialog />
       <div css={logoCardStyle}>
         <div css={heartIconStyle}>❤️</div>
         <h1 css={titleStyle}>혈압다이어리</h1>

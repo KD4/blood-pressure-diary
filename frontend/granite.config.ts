@@ -5,7 +5,7 @@ export default defineConfig({
   brand: {
     displayName: '혈압다이어리',
     primaryColor: '#3182F6',
-    icon: 'https://static.toss.im/icons/png/4x/icon-healthcare-color.png',
+    icon: 'https://static.toss.im/appsintoss/22843/3af0b82a-7a3c-47b3-8a29-be14a0c5ef1b.png',
   },
    web: {
     host: '172.30.1.50',

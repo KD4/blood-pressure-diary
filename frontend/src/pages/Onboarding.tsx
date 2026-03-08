@@ -2,12 +2,16 @@ import { css } from '@emotion/react';
 import { CTAButton } from '@toss/tds-mobile';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useExitConfirm } from '../hooks/useExitConfirm';
+import { useBackEvent } from '../hooks/useBackEvent';
 import { color, fontSize, spacing } from '../styles/tokens';
 import { pageStyle } from '../styles/common';
 
 export default function Onboarding() {
   const { isGuest, loginAsGuest, isNewUser } = useAuth();
   const navigate = useNavigate();
+  const { openExitDialog, ExitConfirmDialog } = useExitConfirm();
+  useBackEvent(openExitDialog);
 
   const handleStart = () => {
     if (isNewUser) {
@@ -23,6 +27,7 @@ export default function Onboarding() {
 
   return (
     <div css={[pageStyle, containerStyle]}>
+      <ExitConfirmDialog />
       <div css={contentStyle}>
         <div css={stepStyle}>
           <div css={stepIconStyle}>📋</div>

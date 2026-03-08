@@ -99,7 +99,7 @@ export default function History() {
                     <div key={record.id} css={recordRowStyle}>
                       <div css={colorBarStyle(levelConfig.color)} />
                       <div css={recordContentStyle}>
-                        <div css={recordTopRowStyle}>
+                        <div css={recordMainRowStyle}>
                           <span css={recordTimeStyle}>
                             {new Date(record.measuredAt).toLocaleTimeString('ko-KR', {
                               hour: '2-digit', minute: '2-digit',
@@ -111,6 +111,8 @@ export default function History() {
                           <span css={recordPulseStyle}>
                             {record.pulse} bpm
                           </span>
+                        </div>
+                        <div css={recordBadgeRowStyle}>
                           {record.measurementPosition && (
                             <span css={neutralBadgeStyle}>{POSITION_LABELS[record.measurementPosition]}</span>
                           )}
@@ -219,11 +221,17 @@ const recordContentStyle = css`
   min-width: 0;
 `;
 
-const recordTopRowStyle = css`
+const recordMainRowStyle = css`
   display: flex;
   align-items: center;
   gap: ${spacing.sm}px;
-  flex-wrap: wrap;
+`;
+
+const recordBadgeRowStyle = css`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs}px;
+  margin-top: ${spacing.xs}px;
 `;
 
 const recordTimeStyle = css`

@@ -414,7 +414,6 @@ const chartTitleStyle = css`
   font-size: ${fontSize.body}px;
   font-weight: 600;
   color: ${color.text};
-  margin-bottom: ${spacing.md}px;
 `;
 
 const chartWrapperStyle = css`

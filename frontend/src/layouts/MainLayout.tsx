@@ -1,12 +1,21 @@
+import { useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { css } from '@emotion/react';
 import { adaptive } from '@toss/tds-colors';
 import BottomNav from '../components/BottomNav';
 import { useExitConfirm } from '../hooks/useExitConfirm';
+import { useBackEvent } from '../hooks/useBackEvent';
 import { layout } from '../styles/tokens';
 
 export default function MainLayout() {
-  const { exitDialog } = useExitConfirm();
+  const { openExitDialog, ExitConfirmDialog } = useExitConfirm();
+  useBackEvent(useCallback(() => {
+    if (window.history.length > 1) {
+      history.back();
+    } else {
+      openExitDialog();
+    }
+  }, [openExitDialog]));
 
   return (
     <div css={appLayoutStyle}>
@@ -14,7 +23,7 @@ export default function MainLayout() {
         <Outlet />
       </main>
       <BottomNav />
-      {exitDialog}
+      <ExitConfirmDialog />
     </div>
   );
 }

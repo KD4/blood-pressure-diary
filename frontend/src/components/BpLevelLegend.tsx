@@ -27,19 +27,19 @@ export default function BpLevelLegend() {
 
   return (
     <div css={wrapperStyle}>
-      <button css={headerStyle} onClick={() => setExpanded(!expanded)}>
-        <div css={dotsRowStyle}>
-          {LEVELS.map(level => {
-            const config = BP_LEVEL_CONFIG[level];
-            return (
-              <div key={level} css={itemStyle}>
-                <span css={dotStyle(config.color)} />
-                <span css={labelStyle}>{SHORT_LABELS[level]}</span>
-              </div>
-            );
-          })}
-        </div>
-        <span css={infoIconStyle}>{expanded ? '닫기' : '기준표'}</span>
+      <div css={dotsRowStyle}>
+        {LEVELS.map(level => {
+          const config = BP_LEVEL_CONFIG[level];
+          return (
+            <div key={level} css={itemStyle}>
+              <span css={dotStyle(config.color)} />
+              <span css={labelStyle}>{SHORT_LABELS[level]}</span>
+            </div>
+          );
+        })}
+      </div>
+      <button css={toggleBtnStyle} onClick={() => setExpanded(!expanded)}>
+        {expanded ? '기준표 닫기' : '기준표 보기'}
       </button>
 
       {expanded && (
@@ -79,22 +79,11 @@ const wrapperStyle = css`
   margin-bottom: ${spacing.md}px;
 `;
 
-const headerStyle = css`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: none;
-  border: none;
-  padding: ${spacing.sm}px 0;
-  cursor: pointer;
-`;
-
 const dotsRowStyle = css`
   display: flex;
   gap: ${spacing.sm}px;
-  flex: 1;
-  min-width: 0;
+  justify-content: center;
+  padding: ${spacing.sm}px 0;
 `;
 
 const itemStyle = css`
@@ -125,12 +114,15 @@ const labelStyle = css`
   color: ${color.textSecondary};
 `;
 
-const infoIconStyle = css`
-  font-size: ${fontSize.caption}px;
+const toggleBtnStyle = css`
+  display: block;
+  margin: ${spacing.xs}px auto 0;
+  background: none;
+  border: none;
+  font-size: 13px;
   color: ${color.primary};
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: ${spacing.sm}px;
+  cursor: pointer;
+  padding: ${spacing.xs}px ${spacing.md}px;
 `;
 
 const tableWrapperStyle = css`
