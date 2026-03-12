@@ -125,232 +125,231 @@ export default function Record() {
     }
   };
 
-  // 결과 화면
-  if (result) {
-    const config = BP_LEVEL_CONFIG[result];
-    return (
-      <div css={[pageStyle, resultContainerStyle]}>
-        <div css={[darkCardStyle, resultCardInnerStyle]}>
-          <div css={resultLevelBadgeStyle(config.color)}>{config.label}</div>
-          <p css={resultMessageStyle}>{config.message}</p>
-          <div css={resultValuesStyle}>
-            <div css={resultValueGroupStyle}>
-              <span css={resultValueNumberStyle}>{systolic}</span>
-              <span css={resultValueUnitStyle}>수축기</span>
-            </div>
-            <span css={resultSlashStyle}>/</span>
-            <div css={resultValueGroupStyle}>
-              <span css={resultValueNumberStyle}>{diastolic}</span>
-              <span css={resultValueUnitStyle}>이완기</span>
-            </div>
-            <div css={resultValueGroupStyle}>
-              <span css={resultPulseNumberStyle}>{pulse}</span>
-              <span css={resultValueUnitStyle}>맥박</span>
-            </div>
-          </div>
-        </div>
-        {/* @ts-expect-error CTAButton children type mismatch with framer-motion */}
-        <CTAButton onClick={() => navigate('/statistics', { replace: true })}>
-          확인
-        </CTAButton>
-        <button css={recordAgainStyle} onClick={() => {
-          setResult(null);
-          setSystolic('');
-          setDiastolic('');
-          setPulse('');
-          setTag(null);
-          setMeasurementPosition(null);
-          setStep(0);
-          setEditingStep(null);
-        }}>
-          한 번 더 기록하기
-        </button>
-      </div>
-    );
-  }
-
   // 실시간 혈압 판정
   const liveLevel = systolic ? classifyBpLevel(Number(systolic), diastolic ? Number(diastolic) : undefined) : null;
   const liveLevelConfig = liveLevel ? BP_LEVEL_CONFIG[liveLevel] : null;
+  const resultConfig = result ? BP_LEVEL_CONFIG[result] : null;
 
   return (
-    <div css={pageStyle}>
-      {/* 배너 광고 */}
-      <div ref={bannerRef} css={bannerStyle} />
-
-      {/* Step 0: 혈압 입력 */}
-      {expandedStep === 0 ? (
-        <div css={darkCardStyle}>
-          <h2 css={darkCardTitleStyle}>혈압 기록</h2>
-
-          <div css={darkInputRowStyle}>
-            <div css={darkInputGroupStyle}>
-              <label css={darkInputLabelStyle}>수축기</label>
-              <input
-                css={underlineInputStyle}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="120"
-                value={systolic}
-                onChange={e => setSystolic(onlyDigits(e.target.value))}
-                autoFocus
-              />
-              <span css={darkInputUnitStyle}>mmHg</span>
-            </div>
-            <div css={darkInputGroupStyle}>
-              <label css={darkInputLabelStyle}>이완기</label>
-              <input
-                css={underlineInputStyle}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="80"
-                value={diastolic}
-                onChange={e => setDiastolic(onlyDigits(e.target.value))}
-              />
-              <span css={darkInputUnitStyle}>mmHg</span>
-            </div>
-            <div css={darkInputGroupStyle}>
-              <label css={darkInputLabelStyle}>맥박</label>
-              <input
-                css={underlineInputStyle}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="72"
-                value={pulse}
-                onChange={e => setPulse(onlyDigits(e.target.value))}
-              />
-              <span css={darkInputUnitStyle}>bpm</span>
-            </div>
-          </div>
-
-          {/* 측정 시간 */}
-          <div css={darkDatetimeGroupStyle}>
-            <label css={darkInputLabelStyle}>측정 시간</label>
-            <input
-              css={datetimeInputStyle}
-              type="datetime-local"
-              value={measuredAt}
-              onChange={e => setMeasuredAt(e.target.value)}
-            />
-          </div>
-
-          {/* 실시간 판정 */}
-          {liveLevelConfig && Number(systolic) > 0 && (
-            <div css={liveLevelStyle(liveLevelConfig.color)}>
-              {liveLevelConfig.label} - {liveLevelConfig.message}
-            </div>
-          )}
-
-          {/* 다음 / 완료 버튼 */}
-          {bpFilled && (
-            <button css={stepNextButtonStyle} onClick={() => {
-              if (editingStep === 0) {
-                setEditingStep(null);
-              } else {
-                setStep(1);
-              }
-            }}>
-              {editingStep === 0 ? '완료' : '다음'}
-            </button>
-          )}
-        </div>
-      ) : step > 0 ? (
-        <div css={completedStepStyle} onClick={() => setEditingStep(0)}>
-          <div css={completedMainStyle}>
-            <span css={completedLabelStyle}>혈압</span>
-            <span css={completedValueStyle}>{systolic}/{diastolic} mmHg · {pulse}bpm</span>
-          </div>
-          {liveLevelConfig && (
-            <span css={completedBadgeStyle(liveLevelConfig.color)}>{liveLevelConfig.label}</span>
-          )}
-        </div>
-      ) : null}
-
-      {/* Step 1: 측정 자세 */}
-      {step >= 1 && (
-        expandedStep === 1 ? (
-          <div css={whiteCardStyle}>
-            <div css={whiteInputGroupStyle}>
-              <label css={whiteInputLabelStyle}>측정 자세</label>
-              <PositionSelector
-                value={measurementPosition}
-                onChange={(v) => {
-                  setMeasurementPosition(v);
-                  if (v != null) {
-                    if (editingStep === 1) {
-                      setEditingStep(null);
-                    } else if (step === 1) {
-                      setStep(2);
-                    }
-                  }
-                }}
-              />
-            </div>
-          </div>
-        ) : step > 1 ? (
-          <div css={completedStepStyle} onClick={() => setEditingStep(1)}>
-            <div css={completedMainStyle}>
-              <span css={completedLabelStyle}>자세</span>
-              <span css={completedValueStyle}>{POSITION_LABELS[measurementPosition!]}</span>
-            </div>
-          </div>
-        ) : null
-      )}
-
-      {/* Step 2: 상황 선택 */}
-      {step >= 2 && (
-        expandedStep === 2 ? (
-          <div css={whiteCardStyle}>
-            <div css={whiteInputGroupStyle}>
-              <label css={whiteInputLabelStyle}>상황</label>
-              <div css={tagListStyle}>
-                {TAGS.map(t => (
-                  <button
-                    key={t}
-                    css={[tagButtonStyle, tag === t && tagActiveStyle]}
-                    onClick={() => {
-                      const newTag = tag === t ? null : t;
-                      setTag(newTag);
-                      if (newTag != null) {
-                        if (editingStep === 2) {
-                          setEditingStep(null);
-                        } else if (step === 2) {
-                          setStep(3);
-                        }
-                      }
-                    }}
-                  >
-                    {TAG_LABELS[t]}
-                  </button>
-                ))}
+    <div css={result ? [pageStyle, resultContainerStyle] : pageStyle}>
+      {result ? (
+        <>
+          <div css={[darkCardStyle, resultCardInnerStyle]}>
+            <div css={resultLevelBadgeStyle(resultConfig!.color)}>{resultConfig!.label}</div>
+            <p css={resultMessageStyle}>{resultConfig!.message}</p>
+            <div css={resultValuesStyle}>
+              <div css={resultValueGroupStyle}>
+                <span css={resultValueNumberStyle}>{systolic}</span>
+                <span css={resultValueUnitStyle}>수축기</span>
+              </div>
+              <span css={resultSlashStyle}>/</span>
+              <div css={resultValueGroupStyle}>
+                <span css={resultValueNumberStyle}>{diastolic}</span>
+                <span css={resultValueUnitStyle}>이완기</span>
+              </div>
+              <div css={resultValueGroupStyle}>
+                <span css={resultPulseNumberStyle}>{pulse}</span>
+                <span css={resultValueUnitStyle}>맥박</span>
               </div>
             </div>
           </div>
-        ) : step > 2 ? (
-          <div css={completedStepStyle} onClick={() => setEditingStep(2)}>
-            <div css={completedMainStyle}>
-              <span css={completedLabelStyle}>상황</span>
-              <span css={completedValueStyle}>{TAG_LABELS[tag!]}</span>
+          {/* @ts-expect-error CTAButton children type mismatch with framer-motion */}
+          <CTAButton onClick={() => navigate('/statistics', { replace: true })}>
+            확인
+          </CTAButton>
+          <button css={recordAgainStyle} onClick={() => {
+            setResult(null);
+            setSystolic('');
+            setDiastolic('');
+            setPulse('');
+            setTag(null);
+            setMeasurementPosition(null);
+            setStep(0);
+            setEditingStep(null);
+          }}>
+            한 번 더 기록하기
+          </button>
+        </>
+      ) : (
+        <>
+          {/* Step 0: 혈압 입력 */}
+          {expandedStep === 0 ? (
+            <div css={darkCardStyle}>
+              <h2 css={darkCardTitleStyle}>혈압 기록</h2>
+
+              <div css={darkInputRowStyle}>
+                <div css={darkInputGroupStyle}>
+                  <label css={darkInputLabelStyle}>수축기</label>
+                  <input
+                    css={underlineInputStyle}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="120"
+                    value={systolic}
+                    onChange={e => setSystolic(onlyDigits(e.target.value))}
+                    autoFocus
+                  />
+                  <span css={darkInputUnitStyle}>mmHg</span>
+                </div>
+                <div css={darkInputGroupStyle}>
+                  <label css={darkInputLabelStyle}>이완기</label>
+                  <input
+                    css={underlineInputStyle}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="80"
+                    value={diastolic}
+                    onChange={e => setDiastolic(onlyDigits(e.target.value))}
+                  />
+                  <span css={darkInputUnitStyle}>mmHg</span>
+                </div>
+                <div css={darkInputGroupStyle}>
+                  <label css={darkInputLabelStyle}>맥박</label>
+                  <input
+                    css={underlineInputStyle}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="72"
+                    value={pulse}
+                    onChange={e => setPulse(onlyDigits(e.target.value))}
+                  />
+                  <span css={darkInputUnitStyle}>bpm</span>
+                </div>
+              </div>
+
+              {/* 측정 시간 */}
+              <div css={darkDatetimeGroupStyle}>
+                <label css={darkInputLabelStyle}>측정 시간</label>
+                <input
+                  css={datetimeInputStyle}
+                  type="datetime-local"
+                  value={measuredAt}
+                  onChange={e => setMeasuredAt(e.target.value)}
+                />
+              </div>
+
+              {/* 실시간 판정 */}
+              {liveLevelConfig && Number(systolic) > 0 && (
+                <div css={liveLevelStyle(liveLevelConfig.color)}>
+                  {liveLevelConfig.label} - {liveLevelConfig.message}
+                </div>
+              )}
+
+              {/* 다음 / 완료 버튼 */}
+              {bpFilled && (
+                <button css={stepNextButtonStyle} onClick={() => {
+                  if (editingStep === 0) {
+                    setEditingStep(null);
+                  } else {
+                    setStep(1);
+                  }
+                }}>
+                  {editingStep === 0 ? '완료' : '다음'}
+                </button>
+              )}
             </div>
-          </div>
-        ) : null
+          ) : step > 0 ? (
+            <div css={completedStepStyle} onClick={() => setEditingStep(0)}>
+              <div css={completedMainStyle}>
+                <span css={completedLabelStyle}>혈압</span>
+                <span css={completedValueStyle}>{systolic}/{diastolic} mmHg · {pulse}bpm</span>
+              </div>
+              {liveLevelConfig && (
+                <span css={completedBadgeStyle(liveLevelConfig.color)}>{liveLevelConfig.label}</span>
+              )}
+            </div>
+          ) : null}
+
+          {/* Step 1: 측정 자세 */}
+          {step >= 1 && (
+            expandedStep === 1 ? (
+              <div css={whiteCardStyle}>
+                <div css={whiteInputGroupStyle}>
+                  <label css={whiteInputLabelStyle}>측정 자세</label>
+                  <PositionSelector
+                    value={measurementPosition}
+                    onChange={(v) => {
+                      setMeasurementPosition(v);
+                      if (v != null) {
+                        if (editingStep === 1) {
+                          setEditingStep(null);
+                        } else if (step === 1) {
+                          setStep(2);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            ) : step > 1 ? (
+              <div css={completedStepStyle} onClick={() => setEditingStep(1)}>
+                <div css={completedMainStyle}>
+                  <span css={completedLabelStyle}>자세</span>
+                  <span css={completedValueStyle}>{POSITION_LABELS[measurementPosition!]}</span>
+                </div>
+              </div>
+            ) : null
+          )}
+
+          {/* Step 2: 상황 선택 */}
+          {step >= 2 && (
+            expandedStep === 2 ? (
+              <div css={whiteCardStyle}>
+                <div css={whiteInputGroupStyle}>
+                  <label css={whiteInputLabelStyle}>상황</label>
+                  <div css={tagListStyle}>
+                    {TAGS.map(t => (
+                      <button
+                        key={t}
+                        css={[tagButtonStyle, tag === t && tagActiveStyle]}
+                        onClick={() => {
+                          const newTag = tag === t ? null : t;
+                          setTag(newTag);
+                          if (newTag != null) {
+                            if (editingStep === 2) {
+                              setEditingStep(null);
+                            } else if (step === 2) {
+                              setStep(3);
+                            }
+                          }
+                        }}
+                      >
+                        {TAG_LABELS[t]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : step > 2 ? (
+              <div css={completedStepStyle} onClick={() => setEditingStep(2)}>
+                <div css={completedMainStyle}>
+                  <span css={completedLabelStyle}>상황</span>
+                  <span css={completedValueStyle}>{TAG_LABELS[tag!]}</span>
+                </div>
+              </div>
+            ) : null
+          )}
+
+          {/* Step 3: 저장 버튼 */}
+          {step >= 3 && (
+            <div css={saveButtonWrapperStyle}>
+              <button
+                css={saveButtonStyle}
+                onClick={handleSave}
+                disabled={!isValid || saving}
+              >
+                {saving ? '저장 중...' : '기록 추가'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Step 3: 저장 버튼 */}
-      {step >= 3 && (
-        <div css={saveButtonWrapperStyle}>
-          <button
-            css={saveButtonStyle}
-            onClick={handleSave}
-            disabled={!isValid || saving}
-          >
-            {saving ? '저장 중...' : '기록 추가'}
-          </button>
-        </div>
-      )}
+      {/* 배너 광고 - 항상 하단에 표시 */}
+      <div ref={bannerRef} css={bannerStyle} />
     </div>
   );
 }
@@ -359,7 +358,8 @@ export default function Record() {
 const bannerStyle = css`
   width: 100%;
   min-height: 50px;
-  margin-bottom: ${spacing.md}px;
+  margin-top: auto;
+  padding-top: ${spacing.lg}px;
   border-radius: ${radius.medium}px;
   overflow: hidden;
 `;

@@ -8,20 +8,13 @@ import { color, fontSize, spacing } from '../styles/tokens';
 import { pageStyle } from '../styles/common';
 
 export default function Onboarding() {
-  const { isGuest, loginAsGuest, isNewUser } = useAuth();
+  const { completeOnboarding } = useAuth();
   const navigate = useNavigate();
   const { openExitDialog, ExitConfirmDialog } = useExitConfirm();
   useBackEvent(openExitDialog);
 
   const handleStart = () => {
-    if (isNewUser) {
-      localStorage.setItem('isNewUser', 'false');
-    }
-    navigate('/record', { replace: true });
-  };
-
-  const handleGuestStart = () => {
-    loginAsGuest();
+    completeOnboarding();
     navigate('/record', { replace: true });
   };
 
@@ -53,11 +46,6 @@ export default function Onboarding() {
         <CTAButton onClick={handleStart}>
           시작하기
         </CTAButton>
-        {!isGuest && (
-          <button css={guestButtonStyle} onClick={handleGuestStart}>
-            로그인 없이 둘러보기
-          </button>
-        )}
       </div>
     </div>
   );
@@ -106,13 +94,4 @@ const buttonAreaStyle = css`
   gap: ${spacing.md}px;
 `;
 
-const guestButtonStyle = css`
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: ${fontSize.body}px;
-  color: ${color.textSecondary};
-  padding: ${spacing.md}px;
-  text-align: center;
-`;
 

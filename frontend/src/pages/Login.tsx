@@ -10,7 +10,7 @@ import { useBackEvent } from '../hooks/useBackEvent';
 import { color, fontSize, spacing } from '../styles/tokens';
 
 export default function Login() {
-  const { login, loginAsGuest } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +33,6 @@ export default function Login() {
     }
   };
 
-  const handleGuestStart = () => {
-    loginAsGuest();
-    navigate('/record', { replace: true });
-  };
-
   return (
     <div css={containerStyle}>
       <ExitConfirmDialog />
@@ -57,9 +52,6 @@ export default function Login() {
         <CTAButton onClick={handleTossLogin} loading={loading}>
           토스로 시작하기
         </CTAButton>
-        <button css={guestButtonStyle} onClick={handleGuestStart}>
-          로그인 없이 둘러보기
-        </button>
       </div>
     </div>
   );
@@ -118,12 +110,3 @@ const buttonAreaStyle = css`
   gap: ${spacing.md}px;
 `;
 
-const guestButtonStyle = css`
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: ${fontSize.body}px;
-  color: ${color.textSecondary};
-  padding: ${spacing.md}px;
-  text-align: center;
-`;

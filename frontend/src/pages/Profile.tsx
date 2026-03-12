@@ -1,16 +1,30 @@
 import { css } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Switch } from '@toss/tds-mobile';
+import { Switch, useBottomSheet, BottomSheet } from '@toss/tds-mobile';
+import { adaptive } from '@toss/tds-colors';
 import { useAuth } from '../contexts/AuthContext';
 import { getNotificationSetting, updateNotificationSetting } from '../api/user';
 import type { NotificationSetting } from '../types';
 import { pageStyle } from '../styles/common';
 import { color, fontSize, spacing, radius, layout } from '../styles/tokens';
 
+// 아침 알림: 4시~14시
+const MORNING_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
+  name: `${i + 4}시`,
+  value: String(i + 4),
+}));
+
+// 저녁 알림: 16시~24시
+const EVENING_OPTIONS = Array.from({ length: 9 }, (_, i) => ({
+  name: i + 16 === 24 ? '24(자정)시' : `${i + 16}시`,
+  value: String(i + 16),
+}));
+
 export default function Profile() {
-  const { isGuest, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
+  const { open, close } = useBottomSheet();
   const [notification, setNotification] = useState<NotificationSetting>({
     enabled: false,
     morningHour: 7,
@@ -18,53 +32,83 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (isGuest) return;
     getNotificationSetting()
       .then(setNotification)
       .catch(console.error);
-  }, [isGuest]);
+  }, []);
 
   const handleToggleNotification = async (_event: React.ChangeEvent<HTMLInputElement>, enabled: boolean) => {
     const updated = { ...notification, enabled };
     setNotification(updated);
-    if (!isGuest) {
-      try {
-        await updateNotificationSetting(updated);
-      } catch (error) {
-        console.error('알림 설정 변경 실패:', error);
-        setNotification(prev => ({ ...prev, enabled: !enabled }));
-      }
+    try {
+      await updateNotificationSetting(updated);
+    } catch (error) {
+      console.error('알림 설정 변경 실패:', error);
+      setNotification(prev => ({ ...prev, enabled: !enabled }));
     }
   };
 
   const handleMorningHourChange = async (hour: number) => {
     const updated = { ...notification, morningHour: hour };
     setNotification(updated);
-    if (!isGuest) {
-      try {
-        await updateNotificationSetting(updated);
-      } catch (error) {
-        console.error(error);
-      }
+    try {
+      await updateNotificationSetting(updated);
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const handleEveningHourChange = async (hour: number) => {
     const updated = { ...notification, eveningHour: hour };
     setNotification(updated);
-    if (!isGuest) {
-      try {
-        await updateNotificationSetting(updated);
-      } catch (error) {
-        console.error(error);
-      }
+    try {
+      await updateNotificationSetting(updated);
+    } catch (error) {
+      console.error(error);
     }
+  };
+
+  const openMorningPicker = () => {
+    open({
+      header: '아침 알림 시각',
+      children: (
+        <BottomSheet.Select
+          options={MORNING_OPTIONS}
+          value={String(notification.morningHour ?? 7)}
+          onChange={(e) => {
+            handleMorningHourChange(Number(e.target.value));
+            close();
+          }}
+        />
+      ),
+    });
+  };
+
+  const openEveningPicker = () => {
+    open({
+      header: '저녁 알림 시각',
+      children: (
+        <BottomSheet.Select
+          options={EVENING_OPTIONS}
+          value={String(notification.eveningHour ?? 21)}
+          onChange={(e) => {
+            handleEveningHourChange(Number(e.target.value));
+            close();
+          }}
+        />
+      ),
+    });
   };
 
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
+
+  const morningLabel = `${notification.morningHour ?? 7}시`;
+  const eveningLabel = notification.eveningHour === 24
+    ? '24(자정)시'
+    : `${notification.eveningHour ?? 21}시`;
 
   return (
     <div css={pageStyle}>
@@ -85,28 +129,18 @@ export default function Profile() {
           <>
             <div css={settingRowStyle}>
               <span css={settingLabelStyle}>아침 알림 시각</span>
-              <select
-                css={selectStyle}
-                value={notification.morningHour ?? 7}
-                onChange={e => handleMorningHourChange(Number(e.target.value))}
-              >
-                {Array.from({ length: 11 }, (_, i) => i + 4).map(h => (
-                  <option key={h} value={h}>{h}시</option>
-                ))}
-              </select>
+              <button css={timePickerButtonStyle} onClick={openMorningPicker}>
+                {morningLabel}
+                <span css={timePickerArrowStyle}>▼</span>
+              </button>
             </div>
 
             <div css={settingRowStyle}>
               <span css={settingLabelStyle}>저녁 알림 시각</span>
-              <select
-                css={selectStyle}
-                value={notification.eveningHour ?? 21}
-                onChange={e => handleEveningHourChange(Number(e.target.value))}
-              >
-                {Array.from({ length: 9 }, (_, i) => i + 16).map(h => (
-                  <option key={h} value={h}>{h === 24 ? '24(자정)' : `${h}`}시</option>
-                ))}
-              </select>
+              <button css={timePickerButtonStyle} onClick={openEveningPicker}>
+                {eveningLabel}
+                <span css={timePickerArrowStyle}>▼</span>
+              </button>
             </div>
           </>
         )}
@@ -124,13 +158,8 @@ export default function Profile() {
       {/* 계정 */}
       <div css={sectionCardStyle}>
         <h3 css={sectionTitleStyle}>계정</h3>
-        {isGuest && (
-          <p css={guestNoticeStyle}>
-            게스트 모드입니다. 토스 로그인하면 데이터를 안전하게 보관할 수 있어요.
-          </p>
-        )}
         <button css={logoutButtonStyle} onClick={handleLogout}>
-          {isGuest ? '게스트 모드 종료' : '로그아웃'}
+          로그아웃
         </button>
       </div>
     </div>
@@ -179,23 +208,23 @@ const settingValueStyle = css`
   color: ${color.textSecondary};
 `;
 
-const selectStyle = css`
+const timePickerButtonStyle = css`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.sm}px;
   padding: ${spacing.sm}px ${spacing.md}px;
   border: 1px solid ${color.border};
   border-radius: ${radius.medium}px;
   font-size: ${fontSize.body}px;
   background: ${color.bgCard};
-  color: ${color.text};
+  color: ${adaptive.grey900};
+  cursor: pointer;
   min-height: 40px;
 `;
 
-const guestNoticeStyle = css`
-  font-size: ${fontSize.label}px;
-  color: ${color.warning};
-  background: ${color.warningLight};
-  padding: ${spacing.md}px;
-  border-radius: ${radius.medium}px;
-  margin-bottom: ${spacing.md}px;
+const timePickerArrowStyle = css`
+  font-size: ${fontSize.caption}px;
+  color: ${color.textSecondary};
 `;
 
 const logoutButtonStyle = css`

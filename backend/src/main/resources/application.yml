@@ -34,4 +34,4 @@ toss:
     cert: ${TOSS_MTLS_CERT:}
     key: ${TOSS_MTLS_KEY:}
   message:
-    template-code: ${TOSS_MESSAGE_TEMPLATE_CODE:bp_measurement_reminder}
+    template-code: ${TOSS_MESSAGE_TEMPLATE_CODE:bpdiary-daily-alert}

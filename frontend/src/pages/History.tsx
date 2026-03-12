@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import { useDialog } from '@toss/tds-mobile';
-import { getAllRecords, deleteRecord, seedDummyRecords } from '../api/bp';
+import { getAllRecords, deleteRecord } from '../api/bp';
 import { BP_LEVEL_CONFIG, TAG_LABELS, POSITION_LABELS } from '../types';
 import type { RecordResponse } from '../types';
 import BpLevelLegend from '../components/BpLevelLegend';
@@ -50,12 +50,6 @@ export default function History() {
     }
   };
 
-  const handleSeedDummy = () => {
-    const count = seedDummyRecords(100);
-    alert(`더미 데이터 ${count}건 추가 완료`);
-    loadRecords();
-  };
-
   // 날짜별 그룹핑 (measuredAt 기준 정렬)
   const sorted = [...records].sort((a, b) =>
     new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime()
@@ -81,9 +75,6 @@ export default function History() {
           <div css={emptyIconStyle}>📋</div>
           <p css={emptyTextStyle}>기록이 없습니다</p>
           <p css={emptySubTextStyle}>기록 탭에서 혈압을 측정해보세요</p>
-          <button css={seedButtonStyle} onClick={handleSeedDummy}>
-            테스트용 더미 데이터 추가 (100일)
-          </button>
         </div>
       ) : (
         <>
@@ -138,9 +129,6 @@ export default function History() {
             ))}
           </div>
 
-          <button css={seedButtonStyle} onClick={handleSeedDummy}>
-            테스트용 더미 데이터 추가
-          </button>
         </>
       )}
     </div>
@@ -285,15 +273,3 @@ const deleteButtonStyle = css`
   }
 `;
 
-const seedButtonStyle = css`
-  display: block;
-  width: 100%;
-  margin-top: ${spacing.lg}px;
-  padding: ${spacing.md}px;
-  background: none;
-  border: 1px dashed ${color.textTertiary};
-  border-radius: ${radius.medium}px;
-  color: ${color.textTertiary};
-  font-size: ${fontSize.caption}px;
-  cursor: pointer;
-`;
