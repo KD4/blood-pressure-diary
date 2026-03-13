@@ -35,9 +35,9 @@ class User(
 
     var sessionToken: String? = null,
 
-    var notificationEnabled: Boolean = false,
+    var notificationEnabled: Boolean = true,
 
-    var morningNotificationHour: Int? = 7,
+    var morningNotificationHour: Int? = 8,
 
-    var eveningNotificationHour: Int? = 21,
+    var eveningNotificationHour: Int? = 20,
 )

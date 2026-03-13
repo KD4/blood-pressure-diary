@@ -3,6 +3,7 @@ package com.kd4.bpdiary.controller
 import com.kd4.bpdiary.dto.*
 import com.kd4.bpdiary.service.BloodPressureService
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -15,7 +16,7 @@ class BloodPressureController(
 
     @PostMapping("/records")
     fun addRecord(
-        @RequestBody request: RecordRequest,
+        @Valid @RequestBody request: RecordRequest,
         httpRequest: HttpServletRequest,
     ): ResponseEntity<RecordResponse> {
         val userId = httpRequest.getAttribute("userId") as Long

@@ -2,15 +2,21 @@ package com.kd4.bpdiary.dto
 
 import com.kd4.bpdiary.entity.MeasurementPosition
 import com.kd4.bpdiary.entity.MeasurementTag
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import java.time.LocalDateTime
 
 data class RecordRequest(
+    @field:Min(1) @field:Max(500)
     val systolic: Int,
+    @field:Min(1) @field:Max(500)
     val diastolic: Int,
+    @field:Min(1) @field:Max(500)
     val pulse: Int,
     val tag: MeasurementTag? = null,
     val memo: String? = null,
     val measuredAt: LocalDateTime? = null,
+    @field:Min(1) @field:Max(999)
     val weight: Int? = null,
     val measurementPosition: MeasurementPosition? = null,
 )
@@ -64,10 +70,12 @@ data class TodaySummaryResponse(
 
 // 게스트 모드용
 data class GuestRecordRequest(
+    @field:jakarta.validation.Valid
     val records: List<RecordRequest>,
 )
 
 data class GuestStatsRequest(
+    @field:jakarta.validation.Valid
     val records: List<RecordRequest>,
     val days: Int = 7,
 )

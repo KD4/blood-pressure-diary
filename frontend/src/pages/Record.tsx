@@ -74,8 +74,11 @@ function classifyBpLevel(systolic: number, diastolic?: number): BpLevel {
   return 'NORMAL';
 }
 
-function onlyDigits(value: string): string {
-  return value.replace(/[^0-9]/g, '');
+function clampedDigits(value: string, max: number): string {
+  const digits = value.replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  const num = Number(digits);
+  return num > max ? String(max) : digits;
 }
 
 export default function Record() {
@@ -187,7 +190,7 @@ export default function Record() {
                     pattern="[0-9]*"
                     placeholder="120"
                     value={systolic}
-                    onChange={e => setSystolic(onlyDigits(e.target.value))}
+                    onChange={e => setSystolic(clampedDigits(e.target.value, 500))}
                     autoFocus
                   />
                   <span css={darkInputUnitStyle}>mmHg</span>
@@ -201,7 +204,7 @@ export default function Record() {
                     pattern="[0-9]*"
                     placeholder="80"
                     value={diastolic}
-                    onChange={e => setDiastolic(onlyDigits(e.target.value))}
+                    onChange={e => setDiastolic(clampedDigits(e.target.value, 500))}
                   />
                   <span css={darkInputUnitStyle}>mmHg</span>
                 </div>
@@ -214,7 +217,7 @@ export default function Record() {
                     pattern="[0-9]*"
                     placeholder="72"
                     value={pulse}
-                    onChange={e => setPulse(onlyDigits(e.target.value))}
+                    onChange={e => setPulse(clampedDigits(e.target.value, 500))}
                   />
                   <span css={darkInputUnitStyle}>bpm</span>
                 </div>

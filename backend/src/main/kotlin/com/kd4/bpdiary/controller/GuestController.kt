@@ -2,6 +2,7 @@ package com.kd4.bpdiary.controller
 
 import com.kd4.bpdiary.dto.*
 import com.kd4.bpdiary.service.BloodPressureService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -12,7 +13,7 @@ class GuestController(
 ) {
 
     @PostMapping("/stats")
-    fun getGuestStats(@RequestBody request: GuestStatsRequest): ResponseEntity<StatsResponse> {
+    fun getGuestStats(@Valid @RequestBody request: GuestStatsRequest): ResponseEntity<StatsResponse> {
         val result = bloodPressureService.calculateGuestStats(request.records)
         return ResponseEntity.ok(result)
     }
