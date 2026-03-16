@@ -24,7 +24,7 @@ import javax.net.ssl.SSLContext
 class TossMessageService(
     @Value("\${toss.mtls.cert:}") private val mtlsCert: String,
     @Value("\${toss.mtls.key:}") private val mtlsKey: String,
-    @Value("\${toss.message.template-code:bp_measurement_reminder}") private val templateSetCode: String,
+    @Value("\${toss.message.template-code:bpdiary-daily-alert}") private val templateSetCode: String,
 ) {
 
     private val log = LoggerFactory.getLogger(TossMessageService::class.java)
