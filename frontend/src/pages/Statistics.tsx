@@ -1,6 +1,8 @@
 import { css } from '@emotion/react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Paragraph, Spacing, Loader } from '@toss/tds-mobile';
 import { getStats } from '../api/bp';
+import { showInterstitialAd } from '../hooks/useInterstitialAd';
 import type { StatsResponse, RecordResponse } from '../types';
 import { pageStyle, darkCardStyle } from '../styles/common';
 import { color, fontSize, spacing, radius } from '../styles/tokens';
@@ -224,6 +226,8 @@ export default function Statistics() {
   const [days, setDays] = useState(7);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingDays, setPendingDays] = useState<number | null>(null);
+  const [adLoading, setAdLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -233,6 +237,39 @@ export default function Statistics() {
       .finally(() => setLoading(false));
   }, [days]);
 
+  const handlePeriodClick = (value: number) => {
+    if (adLoading) return;
+    // 7일은 광고 없이 바로 전환
+    if (value === 7) {
+      setDays(value);
+      return;
+    }
+    // TTL 내면 광고 스킵
+    if (!showInterstitialAd.shouldShow()) {
+      setDays(value);
+      return;
+    }
+    // 30일, 90일은 확인 팝업
+    setPendingDays(value);
+  };
+
+  const handleAdConfirm = async () => {
+    const value = pendingDays;
+    setPendingDays(null);
+    if (!value) return;
+    setAdLoading(true);
+    try {
+      await showInterstitialAd(import.meta.env.VITE_AD_INTERSTITIAL_ID ?? '');
+      setDays(value);
+    } finally {
+      setAdLoading(false);
+    }
+  };
+
+  const handleAdCancel = () => {
+    setPendingDays(null);
+  };
+
   return (
     <div css={pageStyle}>
       {/* 기간 선택 */}
@@ -241,7 +278,7 @@ export default function Statistics() {
           <button
             key={opt.value}
             css={[periodButtonStyle, days === opt.value && periodActiveStyle]}
-            onClick={() => setDays(opt.value)}
+            onClick={() => handlePeriodClick(opt.value)}
           >
             {opt.label}
           </button>
@@ -312,11 +349,93 @@ export default function Statistics() {
           </div>
         </>
       )}
+
+      {/* 광고 로딩 오버레이 */}
+      {adLoading && (
+        <div css={overlayStyle}>
+          <div css={adLoadingBoxStyle}>
+            <Loader />
+            <Spacing size={spacing.md} />
+            <Paragraph typography="st8" color="secondary">광고를 불러오는 중...</Paragraph>
+          </div>
+        </div>
+      )}
+
+      {/* 광고 확인 팝업 */}
+      {pendingDays && (
+        <div css={overlayStyle} onClick={handleAdCancel}>
+          <div css={dialogStyle} onClick={(e) => e.stopPropagation()}>
+            <Paragraph typography="st8" css={css`text-align: center;`}>
+              짧은 광고 후{'\n'}확인 가능해요
+            </Paragraph>
+            <Spacing size={spacing.lg} />
+            <div css={dialogBtnRow}>
+              <button css={dialogBtnSecondary} onClick={handleAdCancel}>취소</button>
+              <button css={dialogBtnPrimary} onClick={handleAdConfirm}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // === Styles ===
+
+// 광고 오버레이 & 다이얼로그
+const overlayStyle = css`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+`;
+
+const adLoadingBoxStyle = css`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const dialogStyle = css`
+  background: ${color.bgCard};
+  border-radius: ${radius.card}px;
+  padding: ${spacing.xl}px;
+  width: 280px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+`;
+
+const dialogBtnRow = css`
+  display: flex;
+  gap: ${spacing.sm}px;
+`;
+
+const dialogBtnSecondary = css`
+  flex: 1;
+  padding: ${spacing.md}px;
+  border: 1px solid ${color.border};
+  border-radius: ${radius.medium}px;
+  background: ${color.bgCard};
+  font-size: ${fontSize.caption}px;
+  font-weight: 600;
+  color: ${color.textSecondary};
+  cursor: pointer;
+`;
+
+const dialogBtnPrimary = css`
+  flex: 1;
+  padding: ${spacing.md}px;
+  border: none;
+  border-radius: ${radius.medium}px;
+  background: ${color.primary};
+  font-size: ${fontSize.caption}px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+`;
+
 const periodSelectorStyle = css`
   display: flex;
   gap: ${spacing.sm}px;

@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "granite dev",
-    "build": "granite build",
+    "dev": "ait dev",
+    "build": "ait build",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "ait deploy"
   },
   "dependencies": {
-    "@apps-in-toss/web-framework": "^1.14.1",
+    "@apps-in-toss/web-framework": "2.0.5",
     "@emotion/react": "^11.14.0",
     "@toss/tds-mobile": "^2.2.1",
     "@toss/tds-mobile-ait": "^2.2.1",
