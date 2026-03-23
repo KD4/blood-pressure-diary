@@ -1,16 +1,23 @@
 package com.kd4.bpdiary.service
 
+import com.kd4.bpdiary.config.AuthInterceptor
 import com.kd4.bpdiary.entity.AuthProvider
 import com.kd4.bpdiary.entity.User
 import com.kd4.bpdiary.oauth.OAuthClient
+import com.kd4.bpdiary.repository.BloodPressureRecordRepository
+import com.kd4.bpdiary.repository.MedicationRepository
 import com.kd4.bpdiary.repository.UserRepository
 import org.mindrot.jbcrypt.BCrypt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Service
 class AuthService(
     private val userRepository: UserRepository,
+    private val bloodPressureRecordRepository: BloodPressureRecordRepository,
+    private val medicationRepository: MedicationRepository,
+    private val authInterceptor: AuthInterceptor,
     oauthClients: List<OAuthClient>,
 ) {
     private val oauthClientMap: Map<AuthProvider, OAuthClient> =
@@ -49,11 +56,18 @@ class AuthService(
         return issueToken(user, isNewUser = false)
     }
 
+    @Transactional
     fun disconnectTossUser(userKey: String) {
         val user = userRepository.findByProviderAndProviderUserId(AuthProvider.TOSS, userKey)
             ?: return
-        user.sessionToken = null
-        userRepository.save(user)
+
+        // 토큰 캐시 제거
+        user.sessionToken?.let { authInterceptor.evictToken(it) }
+
+        // 유저의 모든 데이터 삭제
+        bloodPressureRecordRepository.deleteByUserId(user.id)
+        medicationRepository.deleteByUserId(user.id)
+        userRepository.delete(user)
     }
 
     private fun loginOrCreateOAuthUser(provider: AuthProvider, providerUserId: String): LoginResult {

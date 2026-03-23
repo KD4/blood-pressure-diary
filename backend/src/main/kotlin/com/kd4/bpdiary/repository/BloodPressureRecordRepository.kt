@@ -14,4 +14,6 @@ interface BloodPressureRecordRepository : JpaRepository<BloodPressureRecord, Lon
     fun findByUserIdOrderByMeasuredAtDesc(userId: Long): List<BloodPressureRecord>
 
     fun findTop1ByUserIdOrderByMeasuredAtDesc(userId: Long): BloodPressureRecord?
+
+    fun deleteByUserId(userId: Long)
 }
