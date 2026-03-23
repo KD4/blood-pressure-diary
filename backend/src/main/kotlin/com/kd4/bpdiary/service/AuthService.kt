@@ -8,6 +8,7 @@ import com.kd4.bpdiary.repository.BloodPressureRecordRepository
 import com.kd4.bpdiary.repository.MedicationRepository
 import com.kd4.bpdiary.repository.UserRepository
 import org.mindrot.jbcrypt.BCrypt
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -20,6 +21,8 @@ class AuthService(
     private val authInterceptor: AuthInterceptor,
     oauthClients: List<OAuthClient>,
 ) {
+    private val log = LoggerFactory.getLogger(AuthService::class.java)
+
     private val oauthClientMap: Map<AuthProvider, OAuthClient> =
         oauthClients.associateBy { it.provider }
 
@@ -59,7 +62,12 @@ class AuthService(
     @Transactional
     fun disconnectTossUser(userKey: String) {
         val user = userRepository.findByProviderAndProviderUserId(AuthProvider.TOSS, userKey)
-            ?: return
+        if (user == null) {
+            log.warn("[토스 연결끊기] 유저를 찾을 수 없음 - userKey={}", userKey)
+            return
+        }
+
+        log.info("[토스 연결끊기] 유저 데이터 삭제 시작 - userId={}, userKey={}", user.id, userKey)
 
         // 토큰 캐시 제거
         user.sessionToken?.let { authInterceptor.evictToken(it) }
@@ -68,6 +76,8 @@ class AuthService(
         bloodPressureRecordRepository.deleteByUserId(user.id)
         medicationRepository.deleteByUserId(user.id)
         userRepository.delete(user)
+
+        log.info("[토스 연결끊기] 유저 데이터 삭제 완료 - userId={}, userKey={}", user.id, userKey)
     }
 
     private fun loginOrCreateOAuthUser(provider: AuthProvider, providerUserId: String): LoginResult {

@@ -29,9 +29,9 @@ oauth:
 
 toss:
   disconnect:
-    basic-auth: ${TOSS_DISCONNECT_BASIC_AUTH:}
+    basic-auth: ${TOSS_DISCONNECT_BASIC_AUTH}
   mtls:
-    cert: ${TOSS_MTLS_CERT:}
-    key: ${TOSS_MTLS_KEY:}
+    cert: ${TOSS_MTLS_CERT}
+    key: ${TOSS_MTLS_KEY}
   message:
     template-code: ${TOSS_MESSAGE_TEMPLATE_CODE:bpdiary-daily-alert}
