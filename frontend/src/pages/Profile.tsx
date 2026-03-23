@@ -1,10 +1,11 @@
 import { css } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Switch, useBottomSheet, BottomSheet } from '@toss/tds-mobile';
+import { Switch, useBottomSheet, BottomSheet, Dialog, useDialog } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { useAuth } from '../contexts/AuthContext';
 import { getNotificationSetting, updateNotificationSetting } from '../api/user';
+import { withdraw } from '../api/auth';
 import type { NotificationSetting } from '../types';
 import { pageStyle } from '../styles/common';
 import { color, fontSize, spacing, radius, layout } from '../styles/tokens';
@@ -100,9 +101,17 @@ export default function Profile() {
     });
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+
+  const handleWithdraw = async () => {
+    try {
+      await withdraw();
+    } catch (error) {
+      console.error('회원탈퇴 실패:', error);
+    } finally {
+      logout();
+      navigate('/login', { replace: true });
+    }
   };
 
   const morningLabel = `${notification.morningHour ?? 7}시`;
@@ -158,10 +167,21 @@ export default function Profile() {
       {/* 계정 */}
       <div css={sectionCardStyle}>
         <h3 css={sectionTitleStyle}>계정</h3>
-        <button css={logoutButtonStyle} onClick={handleLogout}>
-          로그아웃
+        <button css={withdrawButtonStyle} onClick={() => setWithdrawDialogOpen(true)}>
+          회원탈퇴
         </button>
       </div>
+
+      <Dialog open={withdrawDialogOpen} onClose={() => setWithdrawDialogOpen(false)}>
+        <Dialog.Header>회원탈퇴</Dialog.Header>
+        <Dialog.Body>
+          탈퇴 시 모든 혈압 기록, 약물 정보 등 저장된 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Dialog.Close>취소</Dialog.Close>
+          <Dialog.Action onClick={handleWithdraw} variant="danger">탈퇴하기</Dialog.Action>
+        </Dialog.Footer>
+      </Dialog>
     </div>
   );
 }
@@ -227,7 +247,7 @@ const timePickerArrowStyle = css`
   color: ${color.textSecondary};
 `;
 
-const logoutButtonStyle = css`
+const withdrawButtonStyle = css`
   width: 100%;
   padding: ${spacing.lg}px;
   border: 1px solid ${color.danger};

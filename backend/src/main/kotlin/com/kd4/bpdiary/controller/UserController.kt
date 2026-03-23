@@ -1,6 +1,7 @@
 package com.kd4.bpdiary.controller
 
 import com.kd4.bpdiary.dto.*
+import com.kd4.bpdiary.service.AuthService
 import com.kd4.bpdiary.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/users")
 class UserController(
     private val userService: UserService,
+    private val authService: AuthService,
 ) {
 
     // 알림 설정
@@ -63,5 +65,12 @@ class UserController(
         val userId = httpRequest.getAttribute("userId") as Long
         userService.deleteMedication(userId, id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/withdraw")
+    fun withdraw(httpRequest: HttpServletRequest): ResponseEntity<Void> {
+        val userId = httpRequest.getAttribute("userId") as Long
+        authService.withdrawUser(userId)
+        return ResponseEntity.ok().build()
     }
 }

@@ -80,6 +80,25 @@ class AuthService(
         log.info("[토스 연결끊기] 유저 데이터 삭제 완료 - userId={}, userKey={}", user.id, userKey)
     }
 
+    @Transactional
+    fun withdrawUser(userId: Long) {
+        val user = userRepository.findById(userId).orElse(null)
+        if (user == null) {
+            log.warn("[회원탈퇴] 유저를 찾을 수 없음 - userId={}", userId)
+            return
+        }
+
+        log.info("[회원탈퇴] 유저 데이터 삭제 시작 - userId={}", userId)
+
+        user.sessionToken?.let { authInterceptor.evictToken(it) }
+
+        bloodPressureRecordRepository.deleteByUserId(userId)
+        medicationRepository.deleteByUserId(userId)
+        userRepository.delete(user)
+
+        log.info("[회원탈퇴] 유저 데이터 삭제 완료 - userId={}", userId)
+    }
+
     private fun loginOrCreateOAuthUser(provider: AuthProvider, providerUserId: String): LoginResult {
         val existing = userRepository.findByProviderAndProviderUserId(provider, providerUserId)
         if (existing != null) {
