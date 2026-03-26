@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Switch, useBottomSheet, BottomSheet, Dialog, useDialog } from '@toss/tds-mobile';
+import { Switch, useBottomSheet, BottomSheet, ConfirmDialog } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { useAuth } from '../contexts/AuthContext';
 import { getNotificationSetting, updateNotificationSetting } from '../api/user';
@@ -165,23 +165,25 @@ export default function Profile() {
       </div>
 
       {/* 계정 */}
-      <div css={sectionCardStyle}>
+      <div css={[sectionCardStyle, { display: 'none' }]}>
         <h3 css={sectionTitleStyle}>계정</h3>
         <button css={withdrawButtonStyle} onClick={() => setWithdrawDialogOpen(true)}>
           회원탈퇴
         </button>
       </div>
 
-      <Dialog open={withdrawDialogOpen} onClose={() => setWithdrawDialogOpen(false)}>
-        <Dialog.Header>회원탈퇴</Dialog.Header>
-        <Dialog.Body>
-          탈퇴 시 모든 혈압 기록, 약물 정보 등 저장된 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close>취소</Dialog.Close>
-          <Dialog.Action onClick={handleWithdraw} variant="danger">탈퇴하기</Dialog.Action>
-        </Dialog.Footer>
-      </Dialog>
+      <ConfirmDialog
+        open={withdrawDialogOpen}
+        onClose={() => setWithdrawDialogOpen(false)}
+        title="회원탈퇴"
+        description="탈퇴 시 모든 혈압 기록, 약물 정보 등 저장된 데이터가 영구적으로 삭제되며 복구할 수 없습니다."
+        confirmButton={
+          <ConfirmDialog.ConfirmButton onClick={handleWithdraw}>탈퇴하기</ConfirmDialog.ConfirmButton>
+        }
+        cancelButton={
+          <ConfirmDialog.CancelButton onClick={() => setWithdrawDialogOpen(false)}>취소</ConfirmDialog.CancelButton>
+        }
+      />
     </div>
   );
 }
